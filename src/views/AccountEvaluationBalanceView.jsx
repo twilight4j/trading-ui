@@ -6,14 +6,11 @@ import { getEvaluationBalanceRowDisplay, evalBalanceSortControlMeta } from '../l
 import EvaluationBalanceMobileCard from '../components/EvaluationBalanceMobileCard.jsx'
 import { formatRegisteredAccountListLabel, normalizeRegisteredAccountRow } from '../lib/registeredAccounts.js'
 
-/** 다음 페이지 호출 전 대기(ms). 즉시 연속 호출 시 키움/목 API가 429를 반환할 수 있음 */
-const EVAL_BALANCE_NEXT_PAGE_DELAY_MS = 1000
-
-function delay(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
-}
+import {
+  delay,
+  EVAL_BALANCE_NEXT_PAGE_DELAY_MS,
+  kiwoomRequestJson,
+} from '../lib/kiwoomRateLimit.js'
 
 export default function AccountEvaluationBalanceView() {
   const [accounts, setAccounts] = useState([])
@@ -61,8 +58,8 @@ export default function AccountEvaluationBalanceView() {
     setIsLoading(true)
     setError('')
     try {
-      await requestJson('POST', '/auth/active', { params: { account_id: accountId } })
-      let response = await requestJson('POST', '/stk/acnt/evaluation-balance', {
+      await kiwoomRequestJson('POST', '/auth/active', { params: { account_id: accountId } })
+      let response = await kiwoomRequestJson('POST', '/stk/acnt/evaluation-balance', {
         params: {
           cont_yn: 'N',
           next_key: '',
@@ -91,7 +88,7 @@ export default function AccountEvaluationBalanceView() {
         // eslint-disable-next-line no-await-in-loop
         await delay(EVAL_BALANCE_NEXT_PAGE_DELAY_MS)
         // eslint-disable-next-line no-await-in-loop
-        response = await requestJson('POST', '/stk/acnt/evaluation-balance', {
+        response = await kiwoomRequestJson('POST', '/stk/acnt/evaluation-balance', {
           params: {
             cont_yn: 'Y',
             next_key: nextKeyValue,

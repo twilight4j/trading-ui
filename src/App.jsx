@@ -6,6 +6,7 @@ import EvaluationSnapshotStatsView from './views/EvaluationSnapshotStatsView.jsx
 import SettingsView from './views/SettingsView.jsx'
 import MarketDashboardView from './views/MarketDashboardView.jsx'
 import QuarterlyNetIncomeAnalysisView from './views/QuarterlyNetIncomeAnalysisView.jsx'
+import RegularOrderView from './views/RegularOrderView.jsx'
 
 const ACTIVE_VIEW_STORAGE_KEY = 'trading-ui-active-view'
 
@@ -16,6 +17,7 @@ const VALID_VIEWS = new Set([
   'evaluationSnapshotStats',
   'orderHistory',
   'quarterlyNetIncomeAnalysis',
+  'regularOrder',
 ])
 
 function readStoredActiveView() {
@@ -63,6 +65,7 @@ function App() {
     evaluationSnapshotStats: '수익률',
     orderHistory: '주문 이력',
     quarterlyNetIncomeAnalysis: '적정주가 분석',
+    regularOrder: '일괄매도',
   }[activeView]
 
   return (
@@ -121,13 +124,20 @@ function App() {
         </div>
         <div className="sidebar-nav-group">
           <h2 className="sidebar-nav-group-title">관리</h2>
-          <nav className="sidebar-nav" aria-label="설정">
+          <nav className="sidebar-nav" aria-label="관리 화면">
             <button
               type="button"
               className={`nav-item ${activeView === 'settings' ? 'active' : ''}`}
               onClick={() => goToView('settings')}
             >
               계좌 조건 설정
+            </button>
+            <button
+              type="button"
+              className={`nav-item ${activeView === 'regularOrder' ? 'active' : ''}`}
+              onClick={() => goToView('regularOrder')}
+            >
+              일괄매도
             </button>
           </nav>
         </div>
@@ -168,6 +178,11 @@ function App() {
         {mountedViews.has('quarterlyNetIncomeAnalysis') ? (
           <div hidden={activeView !== 'quarterlyNetIncomeAnalysis'}>
             <QuarterlyNetIncomeAnalysisView />
+          </div>
+        ) : null}
+        {mountedViews.has('regularOrder') ? (
+          <div hidden={activeView !== 'regularOrder'}>
+            <RegularOrderView />
           </div>
         ) : null}
       </section>
