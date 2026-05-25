@@ -160,7 +160,7 @@ function ScheduleJobCard({ job, onSaved, onError }) {
       </dl>
 
       <div className="schedule-card-actions">
-        <button type="button" className="primary" disabled={!dirty || saving} onClick={handleSave}>
+        <button type="button" className="btn btn-primary" disabled={!dirty || saving} onClick={handleSave}>
           {saving ? '저장 중…' : '저장 · 즉시 반영'}
         </button>
       </div>
@@ -204,7 +204,7 @@ export default function ScheduleManagementView() {
           trading-agent에 등록된 배치 job을 한 화면에서 관리합니다. 변경 사항은 DB에 저장되며 APScheduler에
           재시작 없이 반영됩니다.
         </p>
-        <button type="button" className="secondary" disabled={loading} onClick={load}>
+        <button type="button" className="btn btn-secondary" disabled={loading} onClick={load}>
           새로고침
         </button>
       </section>

@@ -197,6 +197,10 @@ input:focus-visible {
   font-weight: 600;
 }
 
+.summary-value.delta {
+  font-size: 24px;
+}
+
 .delta {
   margin: 0;
   font-size: 13px;
@@ -229,6 +233,81 @@ input:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.snapshot-chart-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.snapshot-chart-title {
+  margin: 0;
+}
+
+.snapshot-chart-help-anchor {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.snapshot-chart-help-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-soft);
+  cursor: pointer;
+  transition:
+    color 150ms ease-out,
+    border-color 150ms ease-out,
+    background-color 150ms ease-out;
+}
+
+.snapshot-chart-help-icon-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+.snapshot-chart-help-icon-btn[aria-expanded='true'] {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: #ffffff;
+}
+
+.snapshot-chart-help-icon-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.snapshot-chart-help-popover {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 6px);
+  left: 0;
+  width: max-content;
+  max-width: min(36rem, calc(100vw - 48px));
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+}
+
+.snapshot-chart-help-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.snapshot-chart-help-text code {
+  font-size: 12px;
 }
 
 .benchmark-chart-wrap {
@@ -517,27 +596,22 @@ input:focus-visible {
   fill: #475569;
 }
 
+.snapshot-chart-legend {
+  justify-content: flex-start;
+  gap: 12px 16px;
+}
+
 .snapshot-legend-row {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   min-width: 0;
 }
 
-.snapshot-legend-row-main {
-  display: inline-flex;
-  align-items: center;
-}
-
-.snapshot-legend-strategy {
-  margin-left: 18px;
-  font-size: 12px;
-}
-
-.snapshot-legend-entry {
-  margin-left: 18px;
-  font-size: 12px;
+.snapshot-legend-account {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .snapshot-excluded-details {
@@ -649,28 +723,20 @@ input:focus-visible {
   white-space: nowrap;
 }
 
+.snapshot-account-card .snapshot-account-picker {
+  margin-top: 0;
+}
+
+.snapshot-account-card .evaluation-list-section-header {
+  margin-bottom: 12px;
+}
+
 .snapshot-account-picker {
   margin-top: 8px;
 }
 
-.snapshot-account-picker-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 12px 16px;
-  margin-bottom: 10px;
-}
-
-.snapshot-account-search-field {
-  flex: 1 1 220px;
-  min-width: 180px;
-  max-width: 420px;
-}
-
 .snapshot-account-picker-meta {
-  margin: 0;
-  flex: 0 1 auto;
-  padding-bottom: 2px;
+  margin: 0 0 10px;
 }
 
 .snapshot-account-checkboxes-wrap {
@@ -684,26 +750,22 @@ input:focus-visible {
 }
 
 .snapshot-account-checkboxes {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 8px 14px;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
   margin-top: 0;
 }
 
 .snapshot-account-checkboxes-empty {
   margin: 0;
-  grid-column: 1 / -1;
-}
-
-.snapshot-account-picker-actions {
-  margin-top: 10px;
 }
 
 .snapshot-account-checkboxes label {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  width: 100%;
   font-size: 13px;
   color: var(--text-strong);
   cursor: pointer;
@@ -711,10 +773,9 @@ input:focus-visible {
 }
 
 .snapshot-account-checkbox-label {
+  flex: 1;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.4;
 }
 
 .snapshot-account-checkboxes input {
@@ -877,18 +938,55 @@ input::placeholder {
 }
 
 select {
+  appearance: none;
+  -webkit-appearance: none;
   height: 40px;
+  min-width: 0;
+  max-width: 100%;
   border-radius: 10px;
   border: 1px solid var(--border);
-  padding: 0 12px;
+  padding: 0 36px 0 12px;
   font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
   color: var(--text-strong);
-  background: #ffffff;
+  background-color: var(--surface);
+  background-image: var(--select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 16px 16px;
+  cursor: pointer;
+  transition:
+    border-color 150ms ease-out,
+    background-color 150ms ease-out,
+    box-shadow 150ms ease-out;
+}
+
+select:hover:not(:disabled) {
+  border-color: var(--control-border-hover);
+  background-color: var(--control-bg-hover);
 }
 
 select:focus-visible {
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus);
+}
+
+select:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background-color: var(--bg);
+}
+
+select option {
+  font-weight: 500;
+  color: var(--text-strong);
+}
+
+.form-field > select,
+.evaluation-control-grid select {
+  width: 100%;
 }
 
 .settings-grid {
@@ -1042,7 +1140,7 @@ select:focus-visible {
 }
 
 .net-income-analysis-table.evaluation-table th {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.02em;
   line-height: 1.25;
   white-space: normal;
@@ -1077,7 +1175,10 @@ select:focus-visible {
   line-height: 1.25;
 }
 
-.net-income-analysis-table th.num .th-sort-btn,
+.net-income-analysis-table th.num .th-sort-btn {
+  font-size: 11px;
+}
+
 .net-income-analysis-table td.num {
   font-size: 10px;
   letter-spacing: -0.02em;
@@ -1334,7 +1435,10 @@ select:focus-visible {
   color: var(--text-muted);
 }
 
-.regular-order-select,
+.regular-order-select {
+  width: 100%;
+}
+
 .regular-order-input {
   width: 100%;
   border: 1px solid var(--border);
@@ -1345,7 +1449,6 @@ select:focus-visible {
   background: #ffffff;
 }
 
-.regular-order-select:focus-visible,
 .regular-order-input:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
@@ -1838,9 +1941,20 @@ select:focus-visible {
 .schedule-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
+  user-select: none;
+}
+
+.schedule-toggle input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+  cursor: pointer;
+  accent-color: var(--primary);
 }
 
 .schedule-cron-grid {

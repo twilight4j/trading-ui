@@ -7,7 +7,6 @@ import {
   formatRegisteredAccountEntrySignal,
   formatRegisteredAccountListLabel,
   normalizeRegisteredAccountRow,
-  registeredAccountMatchesSearch,
 } from '../lib/registeredAccounts.js'
 import {
   SNAPSHOT_CHART_LINE_CLASSES,
@@ -45,13 +44,28 @@ import {
 /** 스냅샷 종목별 평가잔고 목록 기본 정렬: 수익률 내림차순(높은 % 먼저) */
 const DEFAULT_SNAPSHOT_HOLDINGS_SORT = Object.freeze({ field: 'prft_rt', dir: 'desc' })
 
+/** 수익률 화면: 조회구분·거래소 고정 (UI 비노출) */
+const SNAPSHOT_QRY_TP = '1'
+const SNAPSHOT_DMST_STEX_TP = 'KRX'
+
+function InfoHelpIconSvg() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2" />
+      <path
+        d="M12 11v5M12 8h.01"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
 export default function EvaluationSnapshotStatsView() {
   const [accounts, setAccounts] = useState([])
-  const [isAccountsLoading, setIsAccountsLoading] = useState(false)
   const [accountsError, setAccountsError] = useState('')
-
-  const [qryTp, setQryTp] = useState('1')
-  const [dmstStexTp, setDmstStexTp] = useState('KRX')
 
   const snapshotAccountsInitRef = useRef(false)
   const [snapshotChartAccountIds, setSnapshotChartAccountIds] = useState([])
@@ -60,14 +74,16 @@ export default function EvaluationSnapshotStatsView() {
   const [snapshotLoading, setSnapshotLoading] = useState(false)
   const [snapshotError, setSnapshotError] = useState('')
   const [snapshotResult, setSnapshotResult] = useState(null)
-  const [snapshotAccountSearchQuery, setSnapshotAccountSearchQuery] = useState('')
+  const [snapshotChartHelpOpen, setSnapshotChartHelpOpen] = useState(false)
+  const [snapshotAccountHelpOpen, setSnapshotAccountHelpOpen] = useState(false)
+  const snapshotChartHelpRef = useRef(null)
+  const snapshotAccountHelpRef = useRef(null)
   /** 선택 일자·계좌의 스냅샷 종목 상세 (`acnt_evlt_remn_indv_tot`) */
   const [snapshotHoldingSelection, setSnapshotHoldingSelection] = useState(null)
   /** 종목 상세 패널 정렬 — 기본은 수익률 내림차순, 계좌평가 잔고 화면과 동일 토글 */
   const [snapshotHoldingsSort, setSnapshotHoldingsSort] = useState(() => ({ ...DEFAULT_SNAPSHOT_HOLDINGS_SORT }))
 
   async function loadAccounts() {
-    setIsAccountsLoading(true)
     setAccountsError('')
     try {
       const response = await requestJson('GET', '/strategies/accounts', {
@@ -80,19 +96,8 @@ export default function EvaluationSnapshotStatsView() {
     } catch (loadError) {
       setAccountsError(loadError instanceof Error ? loadError.message : String(loadError))
       setAccounts([])
-    } finally {
-      setIsAccountsLoading(false)
     }
   }
-
-  const snapshotAccountSearchTrimmed = snapshotAccountSearchQuery.trim()
-  const filteredSnapshotAccounts = useMemo(() => {
-    if (!snapshotAccountSearchTrimmed) {
-      return accounts
-    }
-    const q = snapshotAccountSearchTrimmed.toLowerCase()
-    return accounts.filter((a) => registeredAccountMatchesSearch(a, q))
-  }, [accounts, snapshotAccountSearchTrimmed])
 
   function toggleSnapshotChartAccount(accountId) {
     const id = String(accountId || '').trim()
@@ -102,15 +107,6 @@ export default function EvaluationSnapshotStatsView() {
     setSnapshotChartAccountIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     )
-  }
-
-  function selectAllSnapshotChartAccounts() {
-    const pool = snapshotAccountSearchTrimmed ? filteredSnapshotAccounts : accounts
-    setSnapshotChartAccountIds(pool.map((a) => a.account_id))
-  }
-
-  function clearSnapshotChartAccounts() {
-    setSnapshotChartAccountIds([])
   }
 
   async function loadSnapshotChart() {
@@ -137,8 +133,8 @@ export default function EvaluationSnapshotStatsView() {
     setSnapshotError('')
     setSnapshotHoldingSelection(null)
     setSnapshotHoldingsSort({ ...DEFAULT_SNAPSHOT_HOLDINGS_SORT })
-    const qry = String(qryTp || '').trim()
-    const stex = String(dmstStexTp || '').trim()
+    const qry = SNAPSHOT_QRY_TP
+    const stex = SNAPSHOT_DMST_STEX_TP
 
     const params = {}
     if (fromRaw) {
@@ -376,12 +372,22 @@ export default function EvaluationSnapshotStatsView() {
   }, [accounts])
 
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect -- 조회구분·거래소 변경 시 차트·선택 상태 무효화 */
-    setSnapshotResult(null)
-    setSnapshotHoldingSelection(null)
-    setSnapshotHoldingsSort({ ...DEFAULT_SNAPSHOT_HOLDINGS_SORT })
-    /* eslint-enable react-hooks/set-state-in-effect */
-  }, [qryTp, dmstStexTp])
+    if (!snapshotChartHelpOpen && !snapshotAccountHelpOpen) {
+      return undefined
+    }
+    function onPointerDown(event) {
+      if (snapshotChartHelpRef.current?.contains(event.target)) {
+        return
+      }
+      if (snapshotAccountHelpRef.current?.contains(event.target)) {
+        return
+      }
+      setSnapshotChartHelpOpen(false)
+      setSnapshotAccountHelpOpen(false)
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [snapshotChartHelpOpen, snapshotAccountHelpOpen])
 
   const selectedHoldingsRawRows = useMemo(() => {
     if (!snapshotHoldingSelection || !snapshotResult?.paths) {
@@ -466,90 +472,57 @@ export default function EvaluationSnapshotStatsView() {
 
   return (
     <section className="dashboard">
-      <section className="card">
-        <div className="evaluation-control-grid">
-          <div className="form-field">
-            <label htmlFor="stats-snap-qry-tp">조회구분</label>
-            <select
-              id="stats-snap-qry-tp"
-              value={qryTp}
-              onChange={(event) => setQryTp(event.target.value)}
-            >
-              <option value="1">합산</option>
-              <option value="2">개별</option>
-            </select>
+      <section className="card snapshot-account-card">
+        <div className="section-header evaluation-list-section-header">
+          <div ref={snapshotAccountHelpRef}>
+            <p className="caption">PAPER · use_yn=Y</p>
+            <div className="snapshot-chart-title-row">
+              <h2 className="snapshot-chart-title">차트 계좌 선택</h2>
+              <div className="snapshot-chart-help-anchor">
+                <button
+                  type="button"
+                  className="snapshot-chart-help-icon-btn"
+                  aria-expanded={snapshotAccountHelpOpen}
+                  aria-controls="snapshot-account-help"
+                  aria-describedby={snapshotAccountHelpOpen ? 'snapshot-account-help' : undefined}
+                  aria-label="차트 계좌 선택 설명 보기"
+                  title="설명 보기"
+                  onClick={() => {
+                    setSnapshotChartHelpOpen(false)
+                    setSnapshotAccountHelpOpen((open) => !open)
+                  }}
+                >
+                  <InfoHelpIconSvg />
+                </button>
+                {snapshotAccountHelpOpen ? (
+                  <div id="snapshot-account-help" className="snapshot-chart-help-popover" role="tooltip">
+                    <p className="subtle snapshot-chart-help-text">
+                      조건식(진입 조건)별로 차트에 포함할 계좌를 고릅니다.
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
           </div>
-          <div className="form-field">
-            <label htmlFor="stats-snap-stex-tp">거래소</label>
-            <select
-              id="stats-snap-stex-tp"
-              value={dmstStexTp}
-              onChange={(event) => setDmstStexTp(event.target.value)}
-            >
-              <option value="KRX">KRX</option>
-              <option value="NXT">NXT</option>
-            </select>
-          </div>
-          <div className="evaluation-control-actions">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => void loadAccounts()}
-              disabled={isAccountsLoading}
-            >
-              계좌 목록 새로고침
-            </button>
-          </div>
+          <button type="button" className="btn btn-secondary" onClick={() => void loadAccounts()}>
+            계좌 목록 새로고침
+          </button>
         </div>
-        {accountsError ? <p className="error-text">계좌 목록 로드 실패: {accountsError}</p> : null}
-      </section>
 
-      <section className="card snapshot-chart-card">
-        <div className="benchmark-head">
-          <p className="caption">저장된 통계 (MongoDB)</p>
-          <h2>스냅샷 날짜별 총수익률</h2>
-          <p className="subtle">
-            위에서 고른 조회구분·거래소와 동일한 키(
-            <code>qry_tp</code>, <code>dmst_stex_tp</code>)로 필터합니다. 성공 응답(
-            <code>return_code=0</code>)만 연결합니다. 각 일자 스냅샷에 붙은{' '}
-            <code>strategy_id</code>로 범례·전략 전환 지점을 표시합니다.
-          </p>
-        </div>
+        {accountsError ? <p className="error-text">계좌 목록 로드 실패: {accountsError}</p> : null}
 
         <div className="snapshot-account-picker">
           {accounts.length === 0 ? (
-            <p className="subtle">계좌 목록을 불러오면 여기서 고를 수 있습니다.</p>
+            <p className="subtle">등록된 계좌가 없거나 아직 불러오지 않았습니다. 새로고침을 눌러 주세요.</p>
           ) : (
             <>
-              <div className="snapshot-account-picker-toolbar">
-                <div className="form-field snapshot-account-search-field">
-                  <label htmlFor="snap-acct-filter">계좌 검색</label>
-                  <input
-                    id="snap-acct-filter"
-                    type="search"
-                    placeholder="계좌번호, 별칭, 진입 조건…"
-                    value={snapshotAccountSearchQuery}
-                    onChange={(e) => setSnapshotAccountSearchQuery(e.target.value)}
-                    autoComplete="off"
-                  />
-                </div>
-                <p className="subtle snapshot-account-picker-meta" aria-live="polite">
-                  {snapshotAccountSearchTrimmed ? (
-                    <>
-                      표시 {filteredSnapshotAccounts.length} / 전체 {accounts.length}
-                    </>
-                  ) : (
-                    <>계좌 {accounts.length}</>
-                  )}
-                  {snapshotChartAccountIds.length > 0 ? ` · 선택 ${snapshotChartAccountIds.length}` : ''}
-                </p>
-              </div>
+              <p className="subtle snapshot-account-picker-meta" aria-live="polite">
+                계좌 {accounts.length}
+                {snapshotChartAccountIds.length > 0 ? ` · 선택 ${snapshotChartAccountIds.length}` : ''}
+              </p>
               <div className="snapshot-account-checkboxes-wrap">
                 <div className="snapshot-account-checkboxes" aria-label="스냅샷 차트 계좌 선택">
-                  {filteredSnapshotAccounts.length === 0 ? (
-                    <p className="subtle snapshot-account-checkboxes-empty">검색 결과가 없습니다.</p>
-                  ) : (
-                    filteredSnapshotAccounts.map((item) => {
+                  {accounts.map((item) => {
                       const id = item.account_id
                       const fullLabel = formatRegisteredAccountListLabel(item)
                       const checkboxLabel =
@@ -574,20 +547,49 @@ export default function EvaluationSnapshotStatsView() {
                           <span className="snapshot-account-checkbox-label">{checkboxLabel}</span>
                         </label>
                       )
-                    })
-                  )}
+                    })}
                 </div>
               </div>
             </>
           )}
         </div>
-        <div className="topbar-actions snapshot-account-picker-actions">
-          <button type="button" className="btn btn-secondary" onClick={selectAllSnapshotChartAccounts}>
-            {snapshotAccountSearchTrimmed ? '보이는 계좌만 전체 선택' : '계좌 전체 선택'}
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={clearSnapshotChartAccounts}>
-            전체 해제
-          </button>
+      </section>
+
+      <section className="card snapshot-chart-card">
+        <div className="benchmark-head">
+          <p className="caption">저장된 통계 (MongoDB)</p>
+          <div className="snapshot-chart-title-wrap" ref={snapshotChartHelpRef}>
+            <div className="snapshot-chart-title-row">
+              <h2 className="snapshot-chart-title">스냅샷 날짜별 총수익률</h2>
+              <div className="snapshot-chart-help-anchor">
+                <button
+                  type="button"
+                  className="snapshot-chart-help-icon-btn"
+                  aria-expanded={snapshotChartHelpOpen}
+                  aria-controls="snapshot-chart-help"
+                  aria-describedby={snapshotChartHelpOpen ? 'snapshot-chart-help' : undefined}
+                  aria-label="스냅샷 차트 설명 보기"
+                  title="설명 보기"
+                  onClick={() => {
+                    setSnapshotAccountHelpOpen(false)
+                    setSnapshotChartHelpOpen((open) => !open)
+                  }}
+                >
+                  <InfoHelpIconSvg />
+                </button>
+                {snapshotChartHelpOpen ? (
+                  <div id="snapshot-chart-help" className="snapshot-chart-help-popover" role="tooltip">
+                    <p className="subtle snapshot-chart-help-text">
+                      조회구분 합산(<code>qry_tp={SNAPSHOT_QRY_TP}</code>), 거래소 KRX(
+                      <code>dmst_stex_tp={SNAPSHOT_DMST_STEX_TP}</code>)로 필터합니다. 성공 응답(
+                      <code>return_code=0</code>)만 연결합니다. 각 일자 스냅샷에 붙은{' '}
+                      <code>strategy_id</code>로 범례·전략 전환 지점을 표시합니다.
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="snapshot-chart-controls-row">
@@ -797,26 +799,13 @@ export default function EvaluationSnapshotStatsView() {
                 }),
               )}
             </svg>
-            <div className="chart-legend">
-              {snapshotResult.paths.map((p) => {
-                const acct = accounts.find((a) => a.account_id === p.accountId)
-                const entryLine = formatRegisteredAccountEntrySignal(acct)
-                return (
-                  <span key={`leg-${p.accountId}`} className="snapshot-legend-row">
-                    <span className="snapshot-legend-row-main">
-                      <i className={`legend-dot snapshot-${p.legendClassIndex}`} />
-                      {p.accountId}
-                      {p.lastVal !== null ? ` ${p.lastVal > 0 ? '+' : ''}${p.lastVal.toFixed(2)}%` : ''}
-                    </span>
-                    {entryLine ? (
-                      <span className="snapshot-legend-entry subtle">진입 {entryLine}</span>
-                    ) : null}
-                    <span className="snapshot-legend-strategy subtle">
-                      최근 전략 {formatSnapshotStrategyLabel(p.lastStrategyId)}
-                    </span>
-                  </span>
-                )
-              })}
+            <div className="chart-legend snapshot-chart-legend">
+              {snapshotResult.paths.map((p) => (
+                <span key={`leg-${p.accountId}`} className="snapshot-legend-row">
+                  <i className={`legend-dot snapshot-${p.legendClassIndex}`} aria-hidden="true" />
+                  <span className="snapshot-legend-account">{p.accountId}</span>
+                </span>
+              ))}
             </div>
             <p className="subtle">
               세로축: {SNAPSHOT_CHART_Y_AXIS_MIN_PCT}% ~ {SNAPSHOT_CHART_Y_AXIS_MAX_PCT}% 고정, 눈금 1% 간격
@@ -853,8 +842,8 @@ export default function EvaluationSnapshotStatsView() {
               <p className="caption">스냅샷 저장 분 (`acnt_evlt_remn_indv_tot`)</p>
               <h2>선택 일자 종목별 평가잔고</h2>
               <p className="subtle">
-                차트에서 고른 계좌·일자의 보유 종목입니다. 조회구분 <code>{qryTp}</code>, 거래소{' '}
-                <code>{dmstStexTp}</code> 필터와 동일한 스냅샷 문서를 사용합니다.
+                차트에서 고른 계좌·일자의 보유 종목입니다. 조회구분 합산(<code>{SNAPSHOT_QRY_TP}</code>),
+                거래소 <code>{SNAPSHOT_DMST_STEX_TP}</code> 필터와 동일한 스냅샷 문서를 사용합니다.
               </p>
             </div>
           </div>

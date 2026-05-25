@@ -9,6 +9,9 @@
   --primary: #2563eb;
   --primary-strong: #1d4ed8;
   --focus: rgba(37, 99, 235, 0.35);
+  --control-bg-hover: #f8fafc;
+  --control-border-hover: #cbd5e1;
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none'%3E%3Cpath stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   --up: #e11d48;
   --down: #2563eb;
 

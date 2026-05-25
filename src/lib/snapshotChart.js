@@ -95,7 +95,7 @@ export const SNAPSHOT_CHART_VIEWBOX_HEIGHT = SNAPSHOT_CHART_DATE_LABEL_Y + 20
 
 /** 세로축 범위·눈금 고정 (%). 데이터가 벗어나면 안내 문구 표시. */
 export const SNAPSHOT_CHART_Y_AXIS_MAX_PCT = 5
-export const SNAPSHOT_CHART_Y_AXIS_MIN_PCT = -5
+export const SNAPSHOT_CHART_Y_AXIS_MIN_PCT = -15
 export const SNAPSHOT_CHART_Y_AXIS_STEP_PCT = 1
 
 /**
