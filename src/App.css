@@ -1783,3 +1783,124 @@ select:focus-visible {
     row-gap: 4px;
   }
 }
+
+.schedule-management {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.schedule-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.schedule-intro p {
+  margin: 0;
+  max-width: 52rem;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.schedule-job-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.schedule-job-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.schedule-job-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.schedule-job-title {
+  margin: 0;
+  font-size: 17px;
+}
+
+.schedule-job-meta {
+  margin: 4px 0 0;
+}
+
+.schedule-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.schedule-cron-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.schedule-cron-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.schedule-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.schedule-cron-grid input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+.schedule-step-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
+.schedule-status-dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px 16px;
+  margin: 0;
+}
+
+.schedule-status-dl div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.schedule-status-dl dt {
+  font-size: 12px;
+  color: var(--text-soft);
+  font-weight: 600;
+}
+
+.schedule-status-dl dd {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.schedule-card-actions {
+  display: flex;
+  justify-content: flex-end;
+}

@@ -7,6 +7,7 @@ import SettingsView from './views/SettingsView.jsx'
 import MarketDashboardView from './views/MarketDashboardView.jsx'
 import QuarterlyNetIncomeAnalysisView from './views/QuarterlyNetIncomeAnalysisView.jsx'
 import RegularOrderView from './views/RegularOrderView.jsx'
+import ScheduleManagementView from './views/ScheduleManagementView.jsx'
 
 const ACTIVE_VIEW_STORAGE_KEY = 'trading-ui-active-view'
 
@@ -18,6 +19,7 @@ const VALID_VIEWS = new Set([
   'orderHistory',
   'quarterlyNetIncomeAnalysis',
   'regularOrder',
+  'scheduleManagement',
 ])
 
 function readStoredActiveView() {
@@ -66,6 +68,7 @@ function App() {
     orderHistory: '주문 이력',
     quarterlyNetIncomeAnalysis: '적정주가 분석',
     regularOrder: '일괄매도',
+    scheduleManagement: '스케줄 관리',
   }[activeView]
 
   return (
@@ -139,6 +142,13 @@ function App() {
             >
               일괄매도
             </button>
+            <button
+              type="button"
+              className={`nav-item ${activeView === 'scheduleManagement' ? 'active' : ''}`}
+              onClick={() => goToView('scheduleManagement')}
+            >
+              스케줄 관리
+            </button>
           </nav>
         </div>
       </aside>
@@ -183,6 +193,11 @@ function App() {
         {mountedViews.has('regularOrder') ? (
           <div hidden={activeView !== 'regularOrder'}>
             <RegularOrderView />
+          </div>
+        ) : null}
+        {mountedViews.has('scheduleManagement') ? (
+          <div hidden={activeView !== 'scheduleManagement'}>
+            <ScheduleManagementView />
           </div>
         ) : null}
       </section>
