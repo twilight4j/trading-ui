@@ -17,5 +17,6 @@ If you are developing a production application, we recommend using TypeScript wi
 
 ## Start
 ```bash
-npm run dev
+caffeinate -sm npm run dev
+caffeinate -sm ngrok http 5173
 ```

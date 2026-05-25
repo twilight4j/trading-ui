@@ -4,14 +4,18 @@ import AccountEvaluationBalanceView from './views/AccountEvaluationBalanceView.j
 import AccountOrderHistoryView from './views/AccountOrderHistoryView.jsx'
 import EvaluationSnapshotStatsView from './views/EvaluationSnapshotStatsView.jsx'
 import SettingsView from './views/SettingsView.jsx'
+import MarketDashboardView from './views/MarketDashboardView.jsx'
+import QuarterlyNetIncomeAnalysisView from './views/QuarterlyNetIncomeAnalysisView.jsx'
 
 const ACTIVE_VIEW_STORAGE_KEY = 'trading-ui-active-view'
 
 const VALID_VIEWS = new Set([
   'settings',
   'evaluationBalance',
+  'marketDashboard',
   'evaluationSnapshotStats',
   'orderHistory',
+  'quarterlyNetIncomeAnalysis',
 ])
 
 function readStoredActiveView() {
@@ -55,8 +59,10 @@ function App() {
   const pageTitle = {
     settings: '계좌 조건 설정',
     evaluationBalance: '계좌평가 잔고내역',
+    marketDashboard: '대시보드 - 준비중입니다',
     evaluationSnapshotStats: '수익률',
     orderHistory: '주문 이력',
+    quarterlyNetIncomeAnalysis: '적정주가 분석',
   }[activeView]
 
   return (
@@ -72,6 +78,25 @@ function App() {
               onClick={() => goToView('evaluationBalance')}
             >
               계좌평가 잔고내역
+            </button>
+            <button
+              type="button"
+              className={`nav-item ${activeView === 'marketDashboard' ? 'active' : ''}`}
+              onClick={() => goToView('marketDashboard')}
+            >
+              대시보드
+            </button>
+          </nav>
+        </div>
+        <div className="sidebar-nav-group">
+          <h2 className="sidebar-nav-group-title">분석</h2>
+          <nav className="sidebar-nav" aria-label="분석 화면">
+            <button
+              type="button"
+              className={`nav-item ${activeView === 'quarterlyNetIncomeAnalysis' ? 'active' : ''}`}
+              onClick={() => goToView('quarterlyNetIncomeAnalysis')}
+            >
+              적정주가 분석
             </button>
           </nav>
         </div>
@@ -120,6 +145,11 @@ function App() {
             <SettingsView />
           </div>
         ) : null}
+        {mountedViews.has('marketDashboard') ? (
+          <div hidden={activeView !== 'marketDashboard'}>
+            <MarketDashboardView />
+          </div>
+        ) : null}
         {mountedViews.has('evaluationBalance') ? (
           <div hidden={activeView !== 'evaluationBalance'}>
             <AccountEvaluationBalanceView />
@@ -133,6 +163,11 @@ function App() {
         {mountedViews.has('orderHistory') ? (
           <div hidden={activeView !== 'orderHistory'}>
             <AccountOrderHistoryView />
+          </div>
+        ) : null}
+        {mountedViews.has('quarterlyNetIncomeAnalysis') ? (
+          <div hidden={activeView !== 'quarterlyNetIncomeAnalysis'}>
+            <QuarterlyNetIncomeAnalysisView />
           </div>
         ) : null}
       </section>

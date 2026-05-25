@@ -108,7 +108,8 @@ export default function AccountOrderHistoryView() {
         `/statistics/accounts/${encodeURIComponent(selectedAccountId)}/order-history`,
         { params },
       )
-      setRows(Array.isArray(data) ? data : [])
+      const list = Array.isArray(data) ? data : []
+      setRows(list.filter((row) => String(row?.plan_status ?? '').toLowerCase() !== 'failed'))
     } catch (fetchError) {
       setRows([])
       setError(fetchError instanceof Error ? fetchError.message : String(fetchError))
@@ -131,8 +132,9 @@ export default function AccountOrderHistoryView() {
           <p className="caption">MongoDB · account_order_history</p>
           <h2>주문 이력</h2>
           <p className="subtle">
-            자동매매 그래프에서 시도한 매수·매도 주문(성공·실패·취소)을 조회합니다. 날짜는 UTC 기준 일 단위 범위로
-            필터됩니다.
+            자동매매 그래프에서 시도한 매수·매도 주문을 조회합니다.{' '}
+            <code className="subtle">plan_status</code>가 <code>failed</code>인 건은 목록에서 제외합니다. 날짜는 UTC
+            기준 일 단위 범위로 필터됩니다.
           </p>
         </div>
 

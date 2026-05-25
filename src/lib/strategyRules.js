@@ -54,7 +54,8 @@ export function declarativeRulesRoughlyEqual(a, b) {
     String(a.base || '').trim() === String(b.base || '').trim() &&
     String(a.target || '').trim() === String(b.target || '').trim() &&
     Number(a.offset) === Number(b.offset) &&
-    normalizeOperator(a.operator) === normalizeOperator(b.operator)
+    normalizeOperator(a.operator) === normalizeOperator(b.operator) &&
+    String(a.sell_qty_mode || 'full').trim() === String(b.sell_qty_mode || 'full').trim()
   )
 }
 
@@ -98,6 +99,10 @@ export function declarativeRuleToStrategyPayload(rule, ruleTypeUpper) {
     offset: Number(rule.offset),
     operator: normalizeOperator(rule.operator),
     name: String(rule.name || '').trim(),
+  }
+  const sellQtyMode = String(rule.sell_qty_mode || '').trim()
+  if (sellQtyMode) {
+    payload.sell_qty_mode = sellQtyMode
   }
   const oid = declarativeRuleStableId(rule)
   if (oid) {
