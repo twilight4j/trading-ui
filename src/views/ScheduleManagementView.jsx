@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
+import GraphManualRunCard from '../components/GraphManualRunCard.jsx'
+import { runEntryGraphBatch, runPositionGraphBatch } from '../lib/graphRuns.js'
 import { fetchSchedules, formatNextRunTime, patchSchedule } from '../lib/schedules.js'
 
 function emptyDraft(job) {
@@ -234,6 +236,21 @@ export default function ScheduleManagementView() {
           ))}
         </div>
       ) : null}
+
+      <section className="schedule-manual-run-grid" aria-label="그래프 수동 실행">
+        <GraphManualRunCard
+          title="Entry graph 수동 실행"
+          description="등록된 모든 진입 계좌에 대해 조건검색·진입 주문 파이프라인을 1회 실행합니다. entry_position_step 설정과 무관하게 Entry만 실행합니다."
+          runLabel="전체 계좌 Entry 실행"
+          onRun={({ enforceTradingDay }) => runEntryGraphBatch({ enforceTradingDay })}
+        />
+        <GraphManualRunCard
+          title="Position graph 수동 실행"
+          description="등록된 모든 진입 계좌에 대해 OPEN 포지션 청산 규칙 평가·매도 주문 파이프라인을 1회 실행합니다."
+          runLabel="전체 계좌 Position 실행"
+          onRun={({ enforceTradingDay }) => runPositionGraphBatch({ enforceTradingDay })}
+        />
+      </section>
     </div>
   )
 }
