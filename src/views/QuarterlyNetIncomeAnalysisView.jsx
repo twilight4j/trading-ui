@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import InfoHelpTooltip from '../components/InfoHelpTooltip.jsx'
 import { ApiError, crawlQuarterlyNetIncome, fetchQuarterlyNetIncomeAnalysis } from '../lib/api.js'
 import { getToneByNumericString } from '../lib/formatApi.js'
 
@@ -47,6 +48,27 @@ function cellTone(value) {
 function formatCellDisplay(value) {
   const text = String(value || '').trim()
   return text || '—'
+}
+
+function PaginationChevron({ direction }) {
+  const paths = {
+    first: 'M6 8 L10 12 L6 16 M11 8 L15 12 L11 16',
+    prev: 'M14 8 L9 12 L14 16',
+    next: 'M10 8 L15 12 L10 16',
+    last: 'M13 8 L9 12 L13 16 M18 8 L14 12 L18 16',
+  }
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+      <path
+        d={paths[direction]}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
 }
 
 export default function QuarterlyNetIncomeAnalysisView() {
@@ -174,8 +196,14 @@ export default function QuarterlyNetIncomeAnalysisView() {
       <section className="card net-income-crawl-card">
         <div className="benchmark-head">
           <p className="caption">FnGuide (WiseReport) → PostgreSQL upsert</p>
-          <h2>당기순이익 크롤·저장</h2>
-          <p className="subtle">종목별로 크롤하며, 완료 후 아래 표가 갱신됩니다. 재무구분은 분석 조회와 동일합니다.</p>
+          <div className="snapshot-chart-title-row">
+            <h2 className="snapshot-chart-title">당기순이익 크롤·저장</h2>
+            <InfoHelpTooltip ariaLabel="당기순이익 크롤·저장 설명">
+              <p className="subtle snapshot-chart-help-text">
+                종목별로 크롤하며, 완료 후 아래 표가 갱신됩니다. 재무구분은 분석 조회와 동일합니다.
+              </p>
+            </InfoHelpTooltip>
+          </div>
         </div>
 
         <div className="evaluation-control-grid net-income-crawl-grid">
@@ -247,11 +275,15 @@ export default function QuarterlyNetIncomeAnalysisView() {
       <section className="card">
         <div className="benchmark-head">
           <p className="caption">PostgreSQL · quarterly_net_income</p>
-          <h2>당기순이익</h2>
-          <p className="subtle">
-            최근 24개월 내 분기 중 8개 분기를 과거→최신 순으로 가로축에 피벗한 당기순이익(지배) 표입니다. 추정 분기는
-            컬럼명에 <code>(E)</code>를 붙이고, 해당 열은 연한 배경으로 표시합니다.
-          </p>
+          <div className="snapshot-chart-title-row">
+            <h2 className="snapshot-chart-title">당기순이익</h2>
+            <InfoHelpTooltip ariaLabel="당기순이익 표 설명">
+              <p className="subtle snapshot-chart-help-text">
+                최근 24개월 내 분기 중 8개 분기를 과거→최신 순으로 가로축에 피벗한 당기순이익(지배) 표입니다. 추정
+                분기는 컬럼명에 <code>(E)</code>를 붙이고, 해당 열은 연한 배경으로 표시합니다.
+              </p>
+            </InfoHelpTooltip>
+          </div>
         </div>
 
         <form className="evaluation-control-grid" onSubmit={applyFilters}>
@@ -413,38 +445,47 @@ export default function QuarterlyNetIncomeAnalysisView() {
               </table>
             </div>
 
-            <div className="evaluation-pagination btn-row">
-              <button type="button" className="btn" disabled={page <= 1 || isLoading} onClick={() => goPage(1)}>
-                처음
+            <nav className="evaluation-pagination" aria-label="목록 페이지">
+              <button
+                type="button"
+                className="pagination-btn pagination-btn--icon"
+                disabled={page <= 1 || isLoading}
+                aria-label="처음 페이지"
+                onClick={() => goPage(1)}
+              >
+                <PaginationChevron direction="first" />
               </button>
               <button
                 type="button"
-                className="btn"
+                className="pagination-btn pagination-btn--icon"
                 disabled={page <= 1 || isLoading}
+                aria-label="이전 페이지"
                 onClick={() => goPage(page - 1)}
               >
-                이전
+                <PaginationChevron direction="prev" />
               </button>
-              <span className="caption">
+              <span className="pagination-status" aria-live="polite">
                 {page} / {totalPages}
               </span>
               <button
                 type="button"
-                className="btn"
+                className="pagination-btn pagination-btn--icon"
                 disabled={page >= totalPages || isLoading}
+                aria-label="다음 페이지"
                 onClick={() => goPage(page + 1)}
               >
-                다음
+                <PaginationChevron direction="next" />
               </button>
               <button
                 type="button"
-                className="btn"
+                className="pagination-btn pagination-btn--icon"
                 disabled={page >= totalPages || isLoading}
+                aria-label="마지막 페이지"
                 onClick={() => goPage(totalPages)}
               >
-                마지막
+                <PaginationChevron direction="last" />
               </button>
-            </div>
+            </nav>
           </>
         ) : null}
       </section>

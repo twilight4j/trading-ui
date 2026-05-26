@@ -1102,9 +1102,72 @@ select option {
 }
 
 .evaluation-pagination {
-  margin-top: 12px;
+  margin-top: 16px;
   display: flex;
+  align-items: center;
   justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.evaluation-pagination .pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  margin: 0;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  color: var(--text-soft);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    color 150ms ease-out,
+    border-color 150ms ease-out,
+    background-color 150ms ease-out,
+    box-shadow 150ms ease-out;
+}
+
+.evaluation-pagination .pagination-btn--icon {
+  padding: 0;
+  width: 36px;
+}
+
+.evaluation-pagination .pagination-btn svg {
+  flex-shrink: 0;
+}
+
+.evaluation-pagination .pagination-btn:not(:disabled):hover {
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: color-mix(in srgb, var(--primary) 6%, #fff);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+}
+
+.evaluation-pagination .pagination-btn:focus-visible {
+  outline: 2px solid var(--focus, var(--primary));
+  outline-offset: 2px;
+}
+
+.evaluation-pagination .pagination-btn:disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.evaluation-pagination .pagination-status {
+  min-width: 4.25rem;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  text-align: center;
+  user-select: none;
 }
 
 .net-income-analysis-table .net-income-estimate {
@@ -1126,7 +1189,7 @@ select option {
 }
 
 .net-income-analysis-table col.ni-col-name {
-  width: 8%;
+  width: 11%;
 }
 
 .net-income-analysis-table col.ni-col-market {
@@ -1134,7 +1197,7 @@ select option {
 }
 
 .net-income-analysis-table col.ni-col-period {
-  width: 10.4375%;
+  width: 7.75%;
 }
 
 .net-income-analysis-table.evaluation-table th,
