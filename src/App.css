@@ -1414,6 +1414,43 @@ select option {
   gap: 16px;
 }
 
+.regular-order-position-run {
+  width: 100%;
+}
+
+.regular-order-position-run .schedule-manual-run-card--compact {
+  min-height: unset;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+
+.regular-order-position-run .schedule-manual-run-card--compact .schedule-manual-run-body {
+  flex: 1 1 auto;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  min-height: unset;
+  padding-bottom: 0;
+}
+
+.regular-order-position-run .schedule-manual-run-card--compact .schedule-manual-run-title {
+  white-space: nowrap;
+}
+
+.regular-order-position-run .schedule-manual-run-card--compact .schedule-manual-run-footer {
+  flex: 0 0 auto;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.regular-order-position-run .schedule-manual-run-card--compact .schedule-manual-run-result {
+  flex: 1 1 100%;
+  width: 100%;
+}
+
 .regular-order-intro-text {
   margin: 0;
   font-size: 13px;

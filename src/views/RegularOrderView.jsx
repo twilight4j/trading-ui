@@ -8,6 +8,8 @@ import {
   SUMMARY_BETWEEN_ACCOUNTS_DELAY_MS,
   SUMMARY_FIRST_ACCOUNT_WARMUP_DELAY_MS,
 } from '../lib/kiwoomRateLimit.js'
+import GraphManualRunCard from '../components/GraphManualRunCard.jsx'
+import { runPositionGraphBatch } from '../lib/graphRuns.js'
 import { normalizeRegisteredAccountRow } from '../lib/registeredAccounts.js'
 
 /** 일괄매도 고정 매매구분: 시장가 (키움 trde_tp=3) */
@@ -289,6 +291,18 @@ export default function RegularOrderView() {
           등록된 모의투자 계좌별 보유 현황을 확인하고, 계좌 카드의 일괄매도로 보유 전 종목을
           시장가 매도 주문합니다.
         </p>
+        <p className="regular-order-intro-text">
+          일괄매도로 접수된 매도 주문은 Position graph 실행 후 체결 확인·포지션 종료 처리가 이어집니다.
+        </p>
+      </section>
+
+      <section className="regular-order-position-run" aria-label="Position graph 수동 실행">
+        <GraphManualRunCard
+          className="schedule-manual-run-card--compact"
+          title="Position graph 수동 실행"
+          runLabel="전체 계좌 Position 실행"
+          onRun={({ enforceTradingDay }) => runPositionGraphBatch({ enforceTradingDay })}
+        />
       </section>
 
       {isAccountsLoading ? (

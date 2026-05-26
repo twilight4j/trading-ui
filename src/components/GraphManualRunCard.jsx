@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { summarizeBatchResult } from '../lib/graphRuns.js'
 
-export default function GraphManualRunCard({ title, description, runLabel, onRun }) {
+export default function GraphManualRunCard({ title, description = '', runLabel, onRun, className = '' }) {
   const [enforceTradingDay, setEnforceTradingDay] = useState(false)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState('')
@@ -21,11 +21,13 @@ export default function GraphManualRunCard({ title, description, runLabel, onRun
     }
   }
 
+  const cardClassName = ['card', 'schedule-manual-run-card', className].filter(Boolean).join(' ')
+
   return (
-    <article className="card schedule-manual-run-card">
+    <article className={cardClassName}>
       <div className="schedule-manual-run-body">
         <h3 className="schedule-job-title schedule-manual-run-title">{title}</h3>
-        <p className="schedule-manual-run-desc">{description}</p>
+        {description ? <p className="schedule-manual-run-desc">{description}</p> : null}
       </div>
 
       <div className="schedule-manual-run-footer">
