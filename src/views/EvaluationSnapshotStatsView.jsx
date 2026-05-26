@@ -47,6 +47,8 @@ const DEFAULT_SNAPSHOT_HOLDINGS_SORT = Object.freeze({ field: 'prft_rt', dir: 'd
 /** 수익률 화면: 조회구분·거래소 고정 (UI 비노출) */
 const SNAPSHOT_QRY_TP = '1'
 const SNAPSHOT_DMST_STEX_TP = 'KRX'
+/** 스냅샷 차트 조회 시작일 기본값 (YYYYMMDD) */
+const SNAPSHOT_CHART_DEFAULT_FROM_DATE = '20260526'
 
 function InfoHelpIconSvg() {
   return (
@@ -69,7 +71,7 @@ export default function EvaluationSnapshotStatsView() {
 
   const snapshotAccountsInitRef = useRef(false)
   const [snapshotChartAccountIds, setSnapshotChartAccountIds] = useState([])
-  const [snapshotFromDate, setSnapshotFromDate] = useState('')
+  const [snapshotFromDate, setSnapshotFromDate] = useState(SNAPSHOT_CHART_DEFAULT_FROM_DATE)
   const [snapshotToDate, setSnapshotToDate] = useState('')
   const [snapshotLoading, setSnapshotLoading] = useState(false)
   const [snapshotError, setSnapshotError] = useState('')
