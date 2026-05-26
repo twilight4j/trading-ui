@@ -1,8 +1,33 @@
 import { useCallback, useEffect, useState } from 'react'
-import { fetchQuarterlyNetIncomeAnalysis } from '../lib/api.js'
+import { ApiError, crawlQuarterlyNetIncome, fetchQuarterlyNetIncomeAnalysis } from '../lib/api.js'
 import { getToneByNumericString } from '../lib/formatApi.js'
 
 const PERIOD_KEYS = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7', 'p8']
+
+const FIN_TYPE_OPTIONS = [
+  { value: 'MAIN', label: 'MAIN (주재무제표)' },
+  { value: 'GAAPS', label: 'GAAPS' },
+  { value: 'GAAPL', label: 'GAAPL' },
+  { value: 'IFRSS', label: 'IFRSS' },
+  { value: 'IFRSL', label: 'IFRSL' },
+]
+
+function formatApiErrorDetail(error) {
+  if (error instanceof ApiError) {
+    const detail = error.detail
+    if (typeof detail === 'string') {
+      return detail
+    }
+    if (detail != null) {
+      return JSON.stringify(detail)
+    }
+  }
+  return error instanceof Error ? error.message : String(error)
+}
+
+function isValidStockCode(value) {
+  return /^\d{6}$/.test(String(value || '').trim())
+}
 
 const SORTABLE_COLUMNS = [
   { key: 'stock_code', label: '종목' },
@@ -25,6 +50,13 @@ function formatCellDisplay(value) {
 }
 
 export default function QuarterlyNetIncomeAnalysisView() {
+  const [finType, setFinType] = useState('MAIN')
+  const [crawlStockCode, setCrawlStockCode] = useState('')
+  const [crawlSleepSeconds, setCrawlSleepSeconds] = useState('1')
+  const [crawlLoading, setCrawlLoading] = useState(false)
+  const [crawlError, setCrawlError] = useState('')
+  const [crawlResult, setCrawlResult] = useState(null)
+
   const [marketName, setMarketName] = useState('')
   const [stockName, setStockName] = useState('')
   const [stockNameInput, setStockNameInput] = useState('')
@@ -47,6 +79,7 @@ export default function QuarterlyNetIncomeAnalysisView() {
     setError('')
     try {
       const data = await fetchQuarterlyNetIncomeAnalysis({
+        fin_type: finType,
         market_name: marketName || undefined,
         stock_name: stockName || undefined,
         page,
@@ -68,7 +101,7 @@ export default function QuarterlyNetIncomeAnalysisView() {
     } finally {
       setIsLoading(false)
     }
-  }, [marketName, stockName, page, pageSize, sortBy, sortOrder])
+  }, [finType, marketName, stockName, page, pageSize, sortBy, sortOrder])
 
   useEffect(() => {
     loadData()
@@ -104,8 +137,113 @@ export default function QuarterlyNetIncomeAnalysisView() {
     setPage(clamped)
   }
 
+  const crawlStockCodeTrimmed = crawlStockCode.trim()
+  const crawlCodeValid = isValidStockCode(crawlStockCodeTrimmed)
+
+  async function runCrawl() {
+    if (!crawlCodeValid) {
+      setCrawlError('종목코드는 6자리 숫자로 입력하세요.')
+      return
+    }
+    const sleep = Number(crawlSleepSeconds)
+    if (!Number.isFinite(sleep) || sleep < 0 || sleep > 30) {
+      setCrawlError('요청 간 대기는 0~30초 사이로 입력하세요.')
+      return
+    }
+
+    setCrawlLoading(true)
+    setCrawlError('')
+    setCrawlResult(null)
+    try {
+      const data = await crawlQuarterlyNetIncome({
+        stock_code: crawlStockCodeTrimmed,
+        fin_type: finType,
+        sleep_seconds: sleep,
+      })
+      setCrawlResult(data)
+      await loadData()
+    } catch (crawlErr) {
+      setCrawlError(formatApiErrorDetail(crawlErr))
+    } finally {
+      setCrawlLoading(false)
+    }
+  }
+
   return (
     <section className="dashboard">
+      <section className="card net-income-crawl-card">
+        <div className="benchmark-head">
+          <p className="caption">FnGuide (WiseReport) → PostgreSQL upsert</p>
+          <h2>당기순이익 크롤·저장</h2>
+          <p className="subtle">종목별로 크롤하며, 완료 후 아래 표가 갱신됩니다. 재무구분은 분석 조회와 동일합니다.</p>
+        </div>
+
+        <div className="evaluation-control-grid net-income-crawl-grid">
+          <div className="form-field">
+            <label htmlFor="ni-crawl-code">종목코드</label>
+            <input
+              id="ni-crawl-code"
+              type="text"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="예: 005930"
+              value={crawlStockCode}
+              onChange={(e) => setCrawlStockCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              disabled={crawlLoading}
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="ni-crawl-fin-type">재무구분</label>
+            <select
+              id="ni-crawl-fin-type"
+              value={finType}
+              onChange={(e) => setFinType(e.target.value)}
+              disabled={crawlLoading || isLoading}
+            >
+              {FIN_TYPE_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field">
+            <label htmlFor="ni-crawl-sleep">요청 간 대기(초)</label>
+            <input
+              id="ni-crawl-sleep"
+              type="number"
+              min={0}
+              max={30}
+              step={0.1}
+              value={crawlSleepSeconds}
+              onChange={(e) => setCrawlSleepSeconds(e.target.value)}
+              disabled={crawlLoading}
+            />
+          </div>
+          <div className="form-field form-field-actions">
+            <span className="form-field-label-spacer" aria-hidden="true">
+              &nbsp;
+            </span>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={crawlLoading || !crawlCodeValid}
+              onClick={() => void runCrawl()}
+            >
+              {crawlLoading ? '크롤 중…' : '크롤 및 저장'}
+            </button>
+          </div>
+        </div>
+
+        {crawlError ? <p className="error-text">{crawlError}</p> : null}
+        {crawlResult ? (
+          <p className="success-text">
+            {crawlResult.stock_code} · {crawlResult.fin_type} ·{' '}
+            {Number(crawlResult.row_count).toLocaleString('ko-KR')}분기 저장
+          </p>
+        ) : null}
+      </section>
+
       <section className="card">
         <div className="benchmark-head">
           <p className="caption">PostgreSQL · quarterly_net_income</p>

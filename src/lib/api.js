@@ -61,3 +61,7 @@ export async function requestJson(method, path, { params, body } = {}) {
 export function fetchQuarterlyNetIncomeAnalysis(params = {}) {
   return requestJson('GET', '/crawling/quarterly-net-income/analysis', { params })
 }
+
+export function crawlQuarterlyNetIncome(params = {}) {
+  return requestJson('POST', '/crawling/quarterly-net-income/crawl', { params })
+}

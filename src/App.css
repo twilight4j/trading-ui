@@ -1002,6 +1002,10 @@ select option {
   align-items: end;
 }
 
+.net-income-crawl-grid {
+  grid-template-columns: minmax(140px, 160px) minmax(200px, 1fr) 120px auto;
+}
+
 .evaluation-control-actions {
   display: flex;
   gap: 8px;
