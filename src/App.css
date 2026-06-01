@@ -995,6 +995,26 @@ select option {
   gap: 12px;
 }
 
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.field-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
 .evaluation-control-grid {
   display: grid;
   grid-template-columns: minmax(240px, 1fr) 160px 160px auto;

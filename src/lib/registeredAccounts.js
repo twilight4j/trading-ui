@@ -1,7 +1,7 @@
 /**
  * GET /strategies/accounts 행 정규화 (entry_filter_signal_* 는 API 확장 필드).
  * @param {unknown} raw
- * @returns {{ account_id: string, account_nm: string, entry_filter_signal_name: string, entry_filter_signal_sec: string, active_strategy_id: string } | null}
+ * @returns {{ account_id: string, account_nm: string, entry_filter_signal_name: string, entry_filter_signal_sec: string, entry_filter_active_from: string, active_strategy_id: string } | null}
  */
 export function normalizeRegisteredAccountRow(raw) {
   if (!raw || !String(raw.account_id || '').trim()) {
@@ -12,6 +12,7 @@ export function normalizeRegisteredAccountRow(raw) {
     account_nm: String(raw.account_nm || '').trim(),
     entry_filter_signal_name: String(raw.entry_filter_signal_name || '').trim(),
     entry_filter_signal_sec: String(raw.entry_filter_signal_sec || '').trim(),
+    entry_filter_active_from: String(raw.entry_filter_active_from || '').trim(),
     active_strategy_id: String(raw.active_strategy_id || '').trim(),
   }
 }
@@ -29,6 +30,9 @@ export function formatRegisteredAccountListLabel(account) {
     parts.push(account.entry_filter_signal_name)
   } else if (account.entry_filter_signal_sec) {
     parts.push(`조건식 ${account.entry_filter_signal_sec}`)
+  }
+  if (account.entry_filter_active_from) {
+    parts.push(`${account.entry_filter_active_from}~`)
   }
   return parts.join(' · ')
 }

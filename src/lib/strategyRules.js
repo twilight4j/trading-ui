@@ -61,26 +61,38 @@ export function declarativeRulesRoughlyEqual(a, b) {
 
 /** 활성 전략 임베드 규칙 한 축(templateOptions와 매칭) → select value */
 export function resolveDeclarativeRuleSelectValueFromStrategy(strategyRules, templateOptions, ruleTypeUpper) {
+  const ids = resolveDeclarativeRuleIdsFromStrategy(strategyRules, templateOptions, ruleTypeUpper)
+  if (ids.length === 0) {
+    return NO_RULE
+  }
+  if (ids.length === 1) {
+    return ids[0]
+  }
+  return UNSELECTED_OPTION
+}
+
+/** 활성 전략 임베드 규칙 → rule_id 배열 (복수 선택 UI용) */
+export function resolveDeclarativeRuleIdsFromStrategy(strategyRules, templateOptions, ruleTypeUpper) {
   const kind = String(ruleTypeUpper || '').toUpperCase()
   const typed = (Array.isArray(strategyRules) ? strategyRules : []).filter(
     (r) => String(r?.type || '').toUpperCase() === kind,
   )
-  if (typed.length === 0) {
-    return NO_RULE
-  }
-  const embedded = typed[0]
-  const eid = declarativeRuleStableId(embedded)
-  if (eid) {
-    const byId = templateOptions.find((o) => declarativeRuleStableId(o.rule) === eid)
-    if (byId) {
-      return byId.value
+  const ids = []
+  for (const embedded of typed) {
+    const eid = declarativeRuleStableId(embedded)
+    if (eid) {
+      const byId = templateOptions.find((o) => declarativeRuleStableId(o.rule) === eid)
+      if (byId) {
+        ids.push(byId.value)
+        continue
+      }
+    }
+    const byShape = templateOptions.find((o) => declarativeRulesRoughlyEqual(embedded, o.rule))
+    if (byShape) {
+      ids.push(byShape.value)
     }
   }
-  const byShape = templateOptions.find((o) => declarativeRulesRoughlyEqual(embedded, o.rule))
-  if (byShape) {
-    return byShape.value
-  }
-  return UNSELECTED_OPTION
+  return ids
 }
 
 /** POST/PATCH 규칙 본문: 백엔드 DeclarativeRule 과 필드 호환 (_id 포함) */
@@ -111,28 +123,31 @@ export function declarativeRuleToStrategyPayload(rule, ruleTypeUpper) {
   return payload
 }
 
-/** 손절 먼저, 익절 다음 순서로 임베드 규칙 배열 생성 (각 0~1건, 둘 다 없음 허용) */
-export function assembleStrategyEmbeddedRulesFromSelectors(
-  simpleSellRule,
-  simpleBuyRule,
+/** 손절 먼저, 익절 다음 순서로 임베드 규칙 배열 생성 (복수 선택, 빈 배열 허용) */
+export function assembleStrategyEmbeddedRulesFromMultiSelectors(
+  stopLossRuleIds,
+  takeProfitRuleIds,
   stopLossRuleOptions,
   takeProfitRuleOptions,
 ) {
   const rules = []
-  if (simpleSellRule !== NO_RULE) {
-    const slPick = stopLossRuleOptions.find((o) => o.value === simpleSellRule)
+  const slIds = Array.isArray(stopLossRuleIds) ? stopLossRuleIds : []
+  const tpIds = Array.isArray(takeProfitRuleIds) ? takeProfitRuleIds : []
+
+  for (const ruleId of slIds) {
+    const slPick = stopLossRuleOptions.find((o) => o.value === ruleId)
     if (!slPick) {
-      return rules
+      continue
     }
     const sl = declarativeRuleToStrategyPayload(slPick.rule, 'STOP_LOSS')
     if (sl?.base && sl.operator) {
       rules.push(sl)
     }
   }
-  if (simpleBuyRule !== NO_RULE) {
-    const tpPick = takeProfitRuleOptions.find((o) => o.value === simpleBuyRule)
+  for (const ruleId of tpIds) {
+    const tpPick = takeProfitRuleOptions.find((o) => o.value === ruleId)
     if (!tpPick) {
-      return rules
+      continue
     }
     const tp = declarativeRuleToStrategyPayload(tpPick.rule, 'TAKE_PROFIT')
     if (tp?.base && tp.operator) {
@@ -140,6 +155,23 @@ export function assembleStrategyEmbeddedRulesFromSelectors(
     }
   }
   return rules
+}
+
+/** @deprecated 단일 선택 UI 호환 — assembleStrategyEmbeddedRulesFromMultiSelectors 사용 권장 */
+export function assembleStrategyEmbeddedRulesFromSelectors(
+  simpleSellRule,
+  simpleBuyRule,
+  stopLossRuleOptions,
+  takeProfitRuleOptions,
+) {
+  const stopLossRuleIds = simpleSellRule === NO_RULE ? [] : [simpleSellRule]
+  const takeProfitRuleIds = simpleBuyRule === NO_RULE ? [] : [simpleBuyRule]
+  return assembleStrategyEmbeddedRulesFromMultiSelectors(
+    stopLossRuleIds.filter((id) => id && id !== UNSELECTED_OPTION),
+    takeProfitRuleIds.filter((id) => id && id !== UNSELECTED_OPTION),
+    stopLossRuleOptions,
+    takeProfitRuleOptions,
+  )
 }
 
 export function isMissingActiveStrategyError(error) {

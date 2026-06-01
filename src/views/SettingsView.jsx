@@ -3,10 +3,9 @@ import { requestJson } from '../lib/api.js'
 import { parseCommaInt, toComma } from '../lib/numbers.js'
 import {
   UNSELECTED_OPTION,
-  NO_RULE,
   flattenDeclarativeRuleOptionsFromRulesList,
-  resolveDeclarativeRuleSelectValueFromStrategy,
-  assembleStrategyEmbeddedRulesFromSelectors,
+  resolveDeclarativeRuleIdsFromStrategy,
+  assembleStrategyEmbeddedRulesFromMultiSelectors,
   isMissingActiveStrategyError,
 } from '../lib/strategyRules.js'
 import { formatRegisteredAccountListLabel, normalizeRegisteredAccountRow } from '../lib/registeredAccounts.js'
@@ -28,10 +27,12 @@ export default function SettingsView() {
 
   const [selectedSignalSec, setSelectedSignalSec] = useState(UNSELECTED_OPTION)
   const [savedSelectedSignalSec, setSavedSelectedSignalSec] = useState(UNSELECTED_OPTION)
-  const [simpleBuyRule, setSimpleBuyRule] = useState(UNSELECTED_OPTION)
-  const [savedSimpleBuyRule, setSavedSimpleBuyRule] = useState(UNSELECTED_OPTION)
-  const [simpleSellRule, setSimpleSellRule] = useState(UNSELECTED_OPTION)
-  const [savedSimpleSellRule, setSavedSimpleSellRule] = useState(UNSELECTED_OPTION)
+  const [entryActiveFromInput, setEntryActiveFromInput] = useState('')
+  const [savedEntryActiveFromInput, setSavedEntryActiveFromInput] = useState('')
+  const [selectedTakeProfitRuleIds, setSelectedTakeProfitRuleIds] = useState([])
+  const [savedTakeProfitRuleIds, setSavedTakeProfitRuleIds] = useState([])
+  const [selectedStopLossRuleIds, setSelectedStopLossRuleIds] = useState([])
+  const [savedStopLossRuleIds, setSavedStopLossRuleIds] = useState([])
   const [budgetInput, setBudgetInput] = useState('300,000')
   const [maxHoldingsInput, setMaxHoldingsInput] = useState('50')
   const [saveMessage, setSaveMessage] = useState({ type: '', text: '' })
@@ -47,10 +48,29 @@ export default function SettingsView() {
     () => Object.fromEntries(conditionOptions.map((item) => [item.sec, item.name || ''])),
     [conditionOptions],
   )
+  const ruleIdsEqual = (a, b) => {
+    const left = Array.isArray(a) ? [...a].sort() : []
+    const right = Array.isArray(b) ? [...b].sort() : []
+    if (left.length !== right.length) {
+      return false
+    }
+    return left.every((value, index) => value === right[index])
+  }
   const hasUnsavedSelectionChanges =
     selectedSignalSec !== savedSelectedSignalSec ||
-    simpleBuyRule !== savedSimpleBuyRule ||
-    simpleSellRule !== savedSimpleSellRule
+    entryActiveFromInput !== savedEntryActiveFromInput ||
+    !ruleIdsEqual(selectedTakeProfitRuleIds, savedTakeProfitRuleIds) ||
+    !ruleIdsEqual(selectedStopLossRuleIds, savedStopLossRuleIds)
+
+  function toggleRuleId(currentIds, ruleId) {
+    const set = new Set(Array.isArray(currentIds) ? currentIds : [])
+    if (set.has(ruleId)) {
+      set.delete(ruleId)
+    } else {
+      set.add(ruleId)
+    }
+    return [...set]
+  }
 
   async function syncAccountState(accountId) {
     const sequence = ++syncSeq.current
@@ -62,12 +82,14 @@ export default function SettingsView() {
     setConditionOptions([])
     setSelectedSignalSec(UNSELECTED_OPTION)
     setSavedSelectedSignalSec(UNSELECTED_OPTION)
-    setSimpleBuyRule(UNSELECTED_OPTION)
-    setSavedSimpleBuyRule(UNSELECTED_OPTION)
+    setEntryActiveFromInput('')
+    setSavedEntryActiveFromInput('')
+    setSelectedTakeProfitRuleIds([])
+    setSavedTakeProfitRuleIds([])
     setTakeProfitRuleOptions([])
     setStopLossRuleOptions([])
-    setSimpleSellRule(UNSELECTED_OPTION)
-    setSavedSimpleSellRule(UNSELECTED_OPTION)
+    setSelectedStopLossRuleIds([])
+    setSavedStopLossRuleIds([])
 
     try {
       await requestJson('POST', '/auth/active', { params: { account_id: accountId } })
@@ -125,12 +147,13 @@ export default function SettingsView() {
 
       if (strategy && typeof strategy === 'object') {
         const loadedSignalSec = String(strategy?.entry_filter?.signal_sec || '').trim() || UNSELECTED_OPTION
-        const resolvedSellRule = resolveDeclarativeRuleSelectValueFromStrategy(
+        const loadedActiveFrom = String(strategy?.entry_filter?.active_from || '').trim()
+        const loadedStopLossRuleIds = resolveDeclarativeRuleIdsFromStrategy(
           strategy.rules,
           slOptionsFlat,
           'STOP_LOSS',
         )
-        const resolvedBuyRule = resolveDeclarativeRuleSelectValueFromStrategy(
+        const loadedTakeProfitRuleIds = resolveDeclarativeRuleIdsFromStrategy(
           strategy.rules,
           tpOptionsFlat,
           'TAKE_PROFIT',
@@ -139,10 +162,12 @@ export default function SettingsView() {
         setLoadedAccountId(accountId)
         setSelectedSignalSec(loadedSignalSec)
         setSavedSelectedSignalSec(loadedSignalSec)
-        setSimpleBuyRule(resolvedBuyRule)
-        setSavedSimpleBuyRule(resolvedBuyRule)
-        setSimpleSellRule(resolvedSellRule)
-        setSavedSimpleSellRule(resolvedSellRule)
+        setEntryActiveFromInput(loadedActiveFrom)
+        setSavedEntryActiveFromInput(loadedActiveFrom)
+        setSelectedTakeProfitRuleIds(loadedTakeProfitRuleIds)
+        setSavedTakeProfitRuleIds(loadedTakeProfitRuleIds)
+        setSelectedStopLossRuleIds(loadedStopLossRuleIds)
+        setSavedStopLossRuleIds(loadedStopLossRuleIds)
         setBudgetInput(toComma(strategy.budget_amount ?? 300000))
         setMaxHoldingsInput(toComma(strategy.max_holdings ?? 50))
         setSyncStatus({ state: 'success', message: `계좌 ${accountId} 전략 로드 완료` })
@@ -225,38 +250,22 @@ export default function SettingsView() {
       if (selectedSignalSec === UNSELECTED_OPTION) {
         throw new Error('진입 조건을 선택하세요.')
       }
-      if (simpleSellRule === UNSELECTED_OPTION) {
-        throw new Error(
-          '손절 규칙을 선택하세요. (DB 템플릿 중 하나를 고르거나 「없음」을 선택하세요.)',
-        )
-      }
-      if (simpleBuyRule === UNSELECTED_OPTION) {
-        throw new Error(
-          '익절 규칙을 선택하세요. (DB 템플릿 중 하나를 고르거나 「없음」을 선택하세요.)',
-        )
-      }
-      const rules = assembleStrategyEmbeddedRulesFromSelectors(
-        simpleSellRule,
-        simpleBuyRule,
+      const rules = assembleStrategyEmbeddedRulesFromMultiSelectors(
+        selectedStopLossRuleIds,
+        selectedTakeProfitRuleIds,
         stopLossRuleOptions,
         takeProfitRuleOptions,
       )
       const slRows = rules.filter((r) => String(r?.type || '').toUpperCase() === 'STOP_LOSS')
       const tpRows = rules.filter((r) => String(r?.type || '').toUpperCase() === 'TAKE_PROFIT')
 
-      const expectSl =
-        simpleSellRule === NO_RULE ? 0 : (stopLossRuleOptions.some((o) => o.value === simpleSellRule) ? 1 : -1)
-      const expectTp =
-        simpleBuyRule === NO_RULE
-          ? 0
-          : takeProfitRuleOptions.some((o) => o.value === simpleBuyRule)
-            ? 1
-            : -1
-
-      if (expectSl < 0 || expectTp < 0) {
-        throw new Error('규칙 템플릿을 찾을 수 없습니다. 계좌를 다시 동기화한 뒤 선택하세요.')
+      if (selectedStopLossRuleIds.some((id) => !stopLossRuleOptions.some((o) => o.value === id))) {
+        throw new Error('선택한 손절 규칙 템플릿을 찾을 수 없습니다. 계좌를 다시 동기화한 뒤 선택하세요.')
       }
-      if (expectSl !== slRows.length || expectTp !== tpRows.length) {
+      if (selectedTakeProfitRuleIds.some((id) => !takeProfitRuleOptions.some((o) => o.value === id))) {
+        throw new Error('선택한 익절 규칙 템플릿을 찾을 수 없습니다. 계좌를 다시 동기화한 뒤 선택하세요.')
+      }
+      if (slRows.length !== selectedStopLossRuleIds.length || tpRows.length !== selectedTakeProfitRuleIds.length) {
         throw new Error('선택한 손절·익절 규칙을 확인하세요.')
       }
       if (budgetAmount === null || budgetAmount < 10000 || budgetAmount > 10000000) {
@@ -266,13 +275,19 @@ export default function SettingsView() {
         throw new Error('최대 보유 종목 수를 올바르게 입력하세요. (1~2000)')
       }
 
+      const entryFilter = {
+        signal_sec: selectedSignalSec,
+        signal_name: signalMap[selectedSignalSec] || '',
+      }
+      const trimmedActiveFrom = String(entryActiveFromInput || '').trim()
+      if (trimmedActiveFrom) {
+        entryFilter.active_from = trimmedActiveFrom
+      }
+
       const payload = {
         budget_amount: budgetAmount,
         max_holdings: maxHoldings,
-        entry_filter: {
-          signal_sec: selectedSignalSec,
-          signal_name: signalMap[selectedSignalSec] || '',
-        },
+        entry_filter: entryFilter,
         rules,
       }
 
@@ -312,10 +327,12 @@ export default function SettingsView() {
       setActiveStrategy(updated)
       setLoadedAccountId(selectedAccountId)
       setSavedSelectedSignalSec(selectedSignalSec)
-      setSavedSimpleBuyRule(simpleBuyRule)
-      setSavedSimpleSellRule(simpleSellRule)
-      setSimpleBuyRule(simpleBuyRule)
-      setSimpleSellRule(simpleSellRule)
+      setSavedEntryActiveFromInput(entryActiveFromInput)
+      setEntryActiveFromInput(entryActiveFromInput)
+      setSavedTakeProfitRuleIds(selectedTakeProfitRuleIds)
+      setSavedStopLossRuleIds(selectedStopLossRuleIds)
+      setSelectedTakeProfitRuleIds(selectedTakeProfitRuleIds)
+      setSelectedStopLossRuleIds(selectedStopLossRuleIds)
       setBudgetInput(toComma(updated?.budget_amount ?? budgetAmount))
       setMaxHoldingsInput(toComma(updated?.max_holdings ?? maxHoldings))
       setSyncStatus({
@@ -335,8 +352,6 @@ export default function SettingsView() {
 
   const requiredMissingFields = []
   if (selectedSignalSec === UNSELECTED_OPTION) requiredMissingFields.push('진입 조건')
-  if (simpleSellRule === UNSELECTED_OPTION) requiredMissingFields.push('손절 규칙')
-  if (simpleBuyRule === UNSELECTED_OPTION) requiredMissingFields.push('익절 규칙')
   if (budgetAmount === null || budgetAmount < 10000 || budgetAmount > 10000000) {
     requiredMissingFields.push('1회 매수금액')
   }
@@ -437,6 +452,16 @@ export default function SettingsView() {
               </select>
             </div>
             <div className="form-field">
+              <label htmlFor="entry-active-from">진입 시작 시각 (KST)</label>
+              <input
+                id="entry-active-from"
+                type="time"
+                value={entryActiveFromInput}
+                onChange={(event) => setEntryActiveFromInput(event.target.value)}
+                disabled={bodyBlocked}
+              />
+            </div>
+            <div className="form-field">
               <label htmlFor="budget">1회 매수금액 (원)</label>
               <input
                 id="budget"
@@ -455,45 +480,59 @@ export default function SettingsView() {
               />
             </div>
           </div>
-          <p className="subtle">검증 범위: 매수금액 10,000~10,000,000원 / 보유수 1~2000</p>
+          <p className="subtle">
+            검증 범위: 매수금액 10,000~10,000,000원 / 보유수 1~2000. 진입 시작 시각을 비우면 스케줄 cron부터
+            즉시 진입 후보를 스캔합니다.
+          </p>
 
-          <h2>단순 익절 / 손절 규칙</h2>
+          <h2>익절 / 손절 규칙 (복수 선택 가능)</h2>
           <div className="settings-grid">
             <div className="form-field">
-              <label htmlFor="buy-rule">익절 규칙</label>
-              <select
-                id="buy-rule"
-                value={simpleBuyRule}
-                onChange={(event) => setSimpleBuyRule(event.target.value)}
-                disabled={bodyBlocked}
-              >
-                <option value={UNSELECTED_OPTION}>선택하세요</option>
-                <option value={NO_RULE}>없음</option>
-                {takeProfitRuleOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
+              <span className="field-label">익절 규칙</span>
+              <div className="checkbox-list" id="buy-rule">
+                {takeProfitRuleOptions.length === 0 ? (
+                  <p className="subtle">등록된 익절 템플릿이 없습니다.</p>
+                ) : (
+                  takeProfitRuleOptions.map((item) => (
+                    <label key={item.value} className="checkbox-row">
+                      <input
+                        type="checkbox"
+                        checked={selectedTakeProfitRuleIds.includes(item.value)}
+                        onChange={() =>
+                          setSelectedTakeProfitRuleIds((prev) => toggleRuleId(prev, item.value))
+                        }
+                        disabled={bodyBlocked}
+                      />
+                      <span>{item.label}</span>
+                    </label>
+                  ))
+                )}
+              </div>
             </div>
             <div className="form-field">
-              <label htmlFor="sell-rule">손절 규칙</label>
-              <select
-                id="sell-rule"
-                value={simpleSellRule}
-                onChange={(event) => setSimpleSellRule(event.target.value)}
-                disabled={bodyBlocked}
-              >
-                <option value={UNSELECTED_OPTION}>선택하세요</option>
-                <option value={NO_RULE}>없음</option>
-                {stopLossRuleOptions.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
+              <span className="field-label">손절 규칙</span>
+              <div className="checkbox-list" id="sell-rule">
+                {stopLossRuleOptions.length === 0 ? (
+                  <p className="subtle">등록된 손절 템플릿이 없습니다.</p>
+                ) : (
+                  stopLossRuleOptions.map((item) => (
+                    <label key={item.value} className="checkbox-row">
+                      <input
+                        type="checkbox"
+                        checked={selectedStopLossRuleIds.includes(item.value)}
+                        onChange={() =>
+                          setSelectedStopLossRuleIds((prev) => toggleRuleId(prev, item.value))
+                        }
+                        disabled={bodyBlocked}
+                      />
+                      <span>{item.label}</span>
+                    </label>
+                  ))
+                )}
+              </div>
             </div>
           </div>
+          <p className="subtle">규칙을 선택하지 않으면 해당 유형의 자동 청산 규칙 없이 저장됩니다.</p>
         </article>
 
         <article className="card right-column">
