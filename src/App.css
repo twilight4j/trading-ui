@@ -1057,8 +1057,31 @@ select option {
   table-layout: fixed;
 }
 
+.evaluation-table.evaluation-table--balance-list {
+  min-width: 868px;
+}
+
 .evaluation-table .col-name {
   width: 154px;
+}
+
+.evaluation-table .col-buy-date {
+  width: 76px;
+}
+
+.evaluation-table--balance-list th.col-buy-date,
+.evaluation-table--balance-list td.col-buy-date {
+  padding-left: 4px;
+  padding-right: 4px;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.evaluation-table--balance-list th.col-buy-date .th-sort-btn {
+  font-size: 0.8125rem;
+  gap: 0;
 }
 
 .evaluation-table .col-qty {

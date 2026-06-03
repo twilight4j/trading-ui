@@ -1,7 +1,11 @@
 import { getEvaluationBalanceRowDisplay } from '../lib/evaluationDisplay.js'
 
-export default function EvaluationBalanceMobileCard({ item }) {
-  const d = getEvaluationBalanceRowDisplay(item)
+export default function EvaluationBalanceMobileCard({
+  item,
+  buyDatesByStkCd = null,
+  showAmountFields = true,
+}) {
+  const d = getEvaluationBalanceRowDisplay(item, buyDatesByStkCd)
   return (
     <li className="evaluation-balance-card">
       <div className="evaluation-balance-card-title">
@@ -23,6 +27,10 @@ export default function EvaluationBalanceMobileCard({ item }) {
           </span>
         </div>
         <div className="evaluation-balance-card-row">
+          <span className="evaluation-balance-card-label">매수일</span>
+          <span className="evaluation-balance-card-value">{d.buyOrdDtText}</span>
+        </div>
+        <div className="evaluation-balance-card-row">
           <span className="evaluation-balance-card-label">매입가</span>
           <span className="evaluation-balance-card-value num">{d.purPricText}</span>
         </div>
@@ -34,18 +42,22 @@ export default function EvaluationBalanceMobileCard({ item }) {
           <span className="evaluation-balance-card-label">현재가</span>
           <span className="evaluation-balance-card-value num">{d.curPrcText}</span>
         </div>
-        <div className="evaluation-balance-card-row">
-          <span className="evaluation-balance-card-label">매입금액</span>
-          <span className="evaluation-balance-card-value num">{d.purAmtText}</span>
-        </div>
-        <div className="evaluation-balance-card-row">
-          <span className="evaluation-balance-card-label">평가금액</span>
-          <span className="evaluation-balance-card-value num">{d.evltAmtText}</span>
-        </div>
-        <div className="evaluation-balance-card-row">
-          <span className="evaluation-balance-card-label">보유비중</span>
-          <span className="evaluation-balance-card-value num">{d.possRtText}</span>
-        </div>
+        {showAmountFields ? (
+          <>
+            <div className="evaluation-balance-card-row">
+              <span className="evaluation-balance-card-label">매입금액</span>
+              <span className="evaluation-balance-card-value num">{d.purAmtText}</span>
+            </div>
+            <div className="evaluation-balance-card-row">
+              <span className="evaluation-balance-card-label">평가금액</span>
+              <span className="evaluation-balance-card-value num">{d.evltAmtText}</span>
+            </div>
+            <div className="evaluation-balance-card-row">
+              <span className="evaluation-balance-card-label">보유비중</span>
+              <span className="evaluation-balance-card-value num">{d.possRtText}</span>
+            </div>
+          </>
+        ) : null}
       </div>
     </li>
   )
