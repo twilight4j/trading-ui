@@ -37,6 +37,7 @@ export function flattenDeclarativeRuleOptionsFromRulesList(flatRules, ruleTypeUp
       rule_id: rid,
     })
   }
+  out.sort((a, b) => a.label.localeCompare(b.label, 'ko'))
   return out
 }
 
