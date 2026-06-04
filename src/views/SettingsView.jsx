@@ -10,6 +10,14 @@ import {
 } from '../lib/strategyRules.js'
 import { formatRegisteredAccountListLabel, normalizeRegisteredAccountRow } from '../lib/registeredAccounts.js'
 
+function buildSaveSuccessMessage(updated) {
+  const n = Number(updated?.positions_rules_synced)
+  if (Number.isFinite(n) && n > 0) {
+    return `설정을 저장했습니다. 보유 종목 ${n}건에 청산 규칙을 반영했습니다.`
+  }
+  return '설정을 저장했습니다.'
+}
+
 export default function SettingsView() {
   const syncSeq = useRef(0)
 
@@ -316,12 +324,16 @@ export default function SettingsView() {
         if (!strategyId) {
           throw new Error('생성된 strategy_id가 비어 있습니다.')
         }
-        await requestJson('POST', `/strategies/${strategyId}/activate`, {
+        const activateResult = await requestJson('POST', `/strategies/${strategyId}/activate`, {
           params: { account_id: selectedAccountId },
         })
         updated = await requestJson('GET', '/strategies/active', {
           params: { account_id: selectedAccountId },
         })
+        const synced = Number(activateResult?.positions_rules_synced)
+        if (Number.isFinite(synced)) {
+          updated = { ...updated, positions_rules_synced: synced }
+        }
       }
 
       setActiveStrategy(updated)
@@ -339,7 +351,7 @@ export default function SettingsView() {
         state: 'success',
         message: `계좌 ${selectedAccountId} 전략 로드 완료`,
       })
-      setSaveMessage({ type: 'success', text: '설정을 저장했습니다.' })
+      setSaveMessage({ type: 'success', text: buildSaveSuccessMessage(updated) })
     } catch (error) {
       setSaveMessage({
         type: 'error',
