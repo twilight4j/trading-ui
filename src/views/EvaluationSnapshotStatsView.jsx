@@ -48,7 +48,7 @@ const DEFAULT_SNAPSHOT_HOLDINGS_SORT = Object.freeze({ field: 'prft_rt', dir: 'd
 const SNAPSHOT_QRY_TP = '1'
 const SNAPSHOT_DMST_STEX_TP = 'KRX'
 /** 스냅샷 차트 조회 시작일 기본값 (YYYYMMDD) */
-const SNAPSHOT_CHART_DEFAULT_FROM_DATE = '20260526'
+const SNAPSHOT_CHART_DEFAULT_FROM_DATE = '20260608'
 
 function InfoHelpIconSvg() {
   return (
