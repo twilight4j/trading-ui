@@ -256,7 +256,7 @@ input:focus-visible {
   flex-direction: column;
   gap: 0;
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .profit-overview-split-header {
@@ -266,6 +266,22 @@ input:focus-visible {
   gap: 12px;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
+  overflow: visible;
+}
+
+.profit-overview-split-title-row .snapshot-chart-help-popover {
+  z-index: 30;
+  max-width: min(22rem, calc(100vw - 48px));
+}
+
+.profit-overview-split-card:has(.snapshot-chart-help-icon-btn[aria-expanded='true']) {
+  position: relative;
+  z-index: 5;
+}
+
+.profit-overview-cumulative:has(.snapshot-chart-help-icon-btn[aria-expanded='true']) {
+  position: relative;
+  z-index: 5;
 }
 
 .profit-overview-split-title {

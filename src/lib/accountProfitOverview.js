@@ -44,6 +44,7 @@ export function buildProfitOverview({ evaluationSummary, realizedSummary }) {
   const totPrftRt = evaluationSummary?.totPrftRt ?? null
   const totPurAmt = evaluationSummary?.totPurAmt ?? null
   const totEvltAmt = evaluationSummary?.totEvltAmt ?? null
+  const dbstBal = evaluationSummary?.dbstBal ?? null
 
   const rlztPl = realizedSummary?.rlztPl ?? null
   const totBuyAmt = realizedSummary?.totBuyAmt ?? null
@@ -65,6 +66,7 @@ export function buildProfitOverview({ evaluationSummary, realizedSummary }) {
       prftRt: totPrftRt,
       totPurAmt,
       totEvltAmt,
+      dbstBal,
     },
     realized: {
       pl: rlztPl,

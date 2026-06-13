@@ -12,6 +12,7 @@ import {
 } from '../lib/evaluationDisplay.js'
 import AccountProfitOverviewCards from '../components/AccountProfitOverviewCards.jsx'
 import EvaluationBalanceMobileCard from '../components/EvaluationBalanceMobileCard.jsx'
+import InfoHelpTooltip from '../components/InfoHelpTooltip.jsx'
 import { formatRegisteredAccountListLabel, normalizeRegisteredAccountRow } from '../lib/registeredAccounts.js'
 
 import {
@@ -70,7 +71,7 @@ export default function AccountEvaluationBalanceView() {
     setRealizedError('')
     try {
       await kiwoomRequestJson('POST', '/auth/active', { params: { account_id: accountId } })
-      const [firstBalanceResponse, buyDatesResponse, realizedResult] = await Promise.all([
+      const [firstBalanceResponse, buyDatesResponse, realizedResult, depositResponse] = await Promise.all([
         kiwoomRequestJson('POST', '/stk/acnt/evaluation-balance', {
           params: {
             cont_yn: 'N',
@@ -86,6 +87,13 @@ export default function AccountEvaluationBalanceView() {
           summary: null,
           truncated: false,
           error: realizedFetchError instanceof Error ? realizedFetchError.message : String(realizedFetchError),
+        })),
+        kiwoomRequestJson('POST', '/stk/acnt/deposit-detail', {
+          params: { cont_yn: 'N', next_key: '' },
+          body: { qry_tp: '3' },
+        }).catch((depositFetchError) => ({
+          d2_pymn_alow_amt: null,
+          error: depositFetchError instanceof Error ? depositFetchError.message : String(depositFetchError),
         })),
       ])
       setBuyDatesByStkCd(
@@ -105,6 +113,7 @@ export default function AccountEvaluationBalanceView() {
         totEvltAmt: response?.tot_evlt_amt ?? null,
         totEvltPl: response?.tot_evlt_pl ?? null,
         totPrftRt: response?.tot_prft_rt ?? null,
+        dbstBal: depositResponse?.d2_pymn_alow_amt ?? null,
       }
       setProfitOverview(
         buildProfitOverview({
@@ -283,7 +292,17 @@ export default function AccountEvaluationBalanceView() {
 
       <section className="card">
         <div className="section-header evaluation-list-section-header">
-          <h2>종목별 평가잔고 목록</h2>
+          <div className="snapshot-chart-title-row">
+            <h2>종목별 평가잔고 목록</h2>
+            <InfoHelpTooltip ariaLabel="종목별 평가잔고 목록 설명">
+              <p className="subtle snapshot-chart-help-text">
+                선택한 계좌·조회구분·거래소 기준 보유 종목별 평가잔고입니다. 연속조회 응답을 합쳐 목록을
+                구성합니다.
+                <br />
+                사용 API: <code>kt00018</code> (계좌평가잔고내역요청)
+              </p>
+            </InfoHelpTooltip>
+          </div>
           <span className="caption">총 {rows.length}건</span>
         </div>
         {isLoading ? <p className="subtle">데이터를 조회하는 중입니다...</p> : null}
