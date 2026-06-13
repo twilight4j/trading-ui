@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { requestJson } from '../lib/api.js'
 import { parseNumericString } from '../lib/numbers.js'
-import { formatApiAmount, formatApiPercent, getToneByNumericString } from '../lib/formatApi.js'
+import {
+  buildProfitOverview,
+  fetchRealizedProfitDailySummary,
+} from '../lib/accountProfitOverview.js'
 import {
   getBuyOrdDtSortKey,
   getEvaluationBalanceRowDisplay,
   evalBalanceSortControlMeta,
 } from '../lib/evaluationDisplay.js'
+import AccountProfitOverviewCards from '../components/AccountProfitOverviewCards.jsx'
 import EvaluationBalanceMobileCard from '../components/EvaluationBalanceMobileCard.jsx'
 import { formatRegisteredAccountListLabel, normalizeRegisteredAccountRow } from '../lib/registeredAccounts.js'
 
@@ -22,7 +26,8 @@ export default function AccountEvaluationBalanceView() {
   const [qryTp, setQryTp] = useState('1')
   const [dmstStexTp, setDmstStexTp] = useState('KRX')
 
-  const [summary, setSummary] = useState(null)
+  const [profitOverview, setProfitOverview] = useState(null)
+  const [realizedError, setRealizedError] = useState('')
   const [rows, setRows] = useState([])
   const [buyDatesByStkCd, setBuyDatesByStkCd] = useState({})
   const [isAccountsLoading, setIsAccountsLoading] = useState(false)
@@ -62,9 +67,10 @@ export default function AccountEvaluationBalanceView() {
     const MAX_PAGES = 100
     setIsLoading(true)
     setError('')
+    setRealizedError('')
     try {
       await kiwoomRequestJson('POST', '/auth/active', { params: { account_id: accountId } })
-      const [firstBalanceResponse, buyDatesResponse] = await Promise.all([
+      const [firstBalanceResponse, buyDatesResponse, realizedResult] = await Promise.all([
         kiwoomRequestJson('POST', '/stk/acnt/evaluation-balance', {
           params: {
             cont_yn: 'N',
@@ -76,22 +82,36 @@ export default function AccountEvaluationBalanceView() {
           },
         }),
         requestJson('GET', '/stk/acnt/holding-buy-dates'),
+        fetchRealizedProfitDailySummary(kiwoomRequestJson).catch((realizedFetchError) => ({
+          summary: null,
+          truncated: false,
+          error: realizedFetchError instanceof Error ? realizedFetchError.message : String(realizedFetchError),
+        })),
       ])
       setBuyDatesByStkCd(
         buyDatesResponse?.buy_dates && typeof buyDatesResponse.buy_dates === 'object'
           ? buyDatesResponse.buy_dates
           : {},
       )
+      if (realizedResult?.error) {
+        setRealizedError(realizedResult.error)
+      }
       let response = firstBalanceResponse
       let allRows = Array.isArray(response?.acnt_evlt_remn_indv_tot) ? response.acnt_evlt_remn_indv_tot : []
 
       setEvalBalanceSort(null)
-      setSummary({
+      const evaluationSummary = {
         totPurAmt: response?.tot_pur_amt ?? null,
         totEvltAmt: response?.tot_evlt_amt ?? null,
         totEvltPl: response?.tot_evlt_pl ?? null,
         totPrftRt: response?.tot_prft_rt ?? null,
-      })
+      }
+      setProfitOverview(
+        buildProfitOverview({
+          evaluationSummary,
+          realizedSummary: realizedResult?.summary ?? null,
+        }),
+      )
 
       let pagingMeta = response?._paging || {}
       let contYnValue = String(pagingMeta?.cont_yn || 'N').toUpperCase()
@@ -126,7 +146,8 @@ export default function AccountEvaluationBalanceView() {
         setError(`연속 페이지가 많아 처음 ${MAX_PAGES}페이지만 불러왔습니다.`)
       }
     } catch (fetchError) {
-      setSummary(null)
+      setProfitOverview(null)
+      setRealizedError('')
       setRows([])
       setBuyDatesByStkCd({})
       setError(fetchError instanceof Error ? fetchError.message : String(fetchError))
@@ -148,13 +169,6 @@ export default function AccountEvaluationBalanceView() {
     // 계좌 변경 시 현재 조회구분·거래소로 자동 조회 (초기 계좌 설정 시에도 동일)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAccountId])
-
-  const summaryCardsData = [
-    { label: '총매입금액', value: summary?.totPurAmt, valueType: 'amount' },
-    { label: '총평가금액', value: summary?.totEvltAmt, valueType: 'amount' },
-    { label: '총평가손익', value: summary?.totEvltPl, valueType: 'amount', tone: getToneByNumericString(summary?.totEvltPl) },
-    { label: '총수익률', value: summary?.totPrftRt, valueType: 'percent', tone: getToneByNumericString(summary?.totPrftRt) },
-  ]
 
   const sortedRows = useMemo(() => {
     if (!evalBalanceSort) {
@@ -261,16 +275,11 @@ export default function AccountEvaluationBalanceView() {
         {error ? <p className="debug-box">{error}</p> : null}
       </section>
 
-      <section className="summary-grid" aria-label="계좌 평가 요약">
-        {summaryCardsData.map((item) => (
-          <article key={item.label} className="card summary-card">
-            <p className="caption">{item.label}</p>
-            <p className={`summary-value ${item.tone ? `delta ${item.tone}` : ''}`}>
-              {item.valueType === 'percent' ? formatApiPercent(item.value) : formatApiAmount(item.value)}
-            </p>
-          </article>
-        ))}
-      </section>
+      <AccountProfitOverviewCards
+        profitOverview={profitOverview}
+        isLoading={isLoading}
+        realizedError={realizedError}
+      />
 
       <section className="card">
         <div className="section-header evaluation-list-section-header">

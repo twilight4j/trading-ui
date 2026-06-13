@@ -201,6 +201,155 @@ input:focus-visible {
   font-size: 24px;
 }
 
+.profit-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profit-overview-cumulative {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.profit-overview-cumulative-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profit-overview-cumulative-right {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.profit-overview-cumulative-value {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.profit-overview-cumulative-value.delta {
+  font-size: 18px;
+}
+
+.profit-overview-start-date {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.profit-overview-bottom {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profit-overview-split-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.profit-overview-split-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.profit-overview-split-title {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.profit-overview-split-headline {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.profit-overview-split-pl {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.profit-overview-split-pl.delta {
+  font-size: 18px;
+}
+
+.profit-overview-split-rate {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.profit-overview-split-rate.delta {
+  font-size: 14px;
+}
+
+.profit-overview-split-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profit-overview-split-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.profit-overview-split-col + .profit-overview-split-col {
+  border-left: 1px solid var(--border);
+}
+
+.profit-overview-metric {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profit-overview-metric .caption {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.profit-overview-metric-value {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.profit-overview-split-card--metric-emphasis .profit-overview-metric .caption {
+  font-size: 14px;
+}
+
+.profit-overview-realized-warning {
+  margin: 0;
+}
+
 .delta {
   margin: 0;
   font-size: 13px;
@@ -1919,6 +2068,10 @@ select option {
 @media (max-width: 1024px) {
   .summary-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profit-overview-bottom {
+    grid-template-columns: 1fr;
   }
 
   .main-grid {
