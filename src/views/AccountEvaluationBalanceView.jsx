@@ -1,18 +1,14 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { requestJson } from '../lib/api.js'
-import { parseNumericString } from '../lib/numbers.js'
 import {
   buildProfitOverview,
   fetchRealizedProfitDailySummary,
+  getKstTodayYmd,
+  PROFIT_TRACKING_START_DATE,
 } from '../lib/accountProfitOverview.js'
-import {
-  getBuyOrdDtSortKey,
-  getEvaluationBalanceRowDisplay,
-  evalBalanceSortControlMeta,
-} from '../lib/evaluationDisplay.js'
+import { fetchRealizedProfitByPeriod } from '../lib/realizedProfitByPeriod.js'
+import AccountEvaluationDetailTabs from '../components/AccountEvaluationDetailTabs.jsx'
 import AccountProfitOverviewCards from '../components/AccountProfitOverviewCards.jsx'
-import EvaluationBalanceMobileCard from '../components/EvaluationBalanceMobileCard.jsx'
-import InfoHelpTooltip from '../components/InfoHelpTooltip.jsx'
 import { formatRegisteredAccountListLabel, normalizeRegisteredAccountRow } from '../lib/registeredAccounts.js'
 
 import {
@@ -29,14 +25,15 @@ export default function AccountEvaluationBalanceView() {
 
   const [profitOverview, setProfitOverview] = useState(null)
   const [realizedError, setRealizedError] = useState('')
+  const [realizedByPeriodRows, setRealizedByPeriodRows] = useState([])
+  const [realizedByPeriodError, setRealizedByPeriodError] = useState('')
+  const [realizedByPeriodTruncated, setRealizedByPeriodTruncated] = useState(false)
   const [rows, setRows] = useState([])
   const [buyDatesByStkCd, setBuyDatesByStkCd] = useState({})
   const [isAccountsLoading, setIsAccountsLoading] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [accountsError, setAccountsError] = useState('')
-  /** null: API 순서, 그 외: buy_ord_dt | evltv_prft | prft_rt 단일 컬럼 정렬 */
-  const [evalBalanceSort, setEvalBalanceSort] = useState(null)
 
   async function loadAccountsAndInitialize() {
     setIsAccountsLoading(true)
@@ -69,33 +66,48 @@ export default function AccountEvaluationBalanceView() {
     setIsLoading(true)
     setError('')
     setRealizedError('')
+    setRealizedByPeriodError('')
+    setRealizedByPeriodTruncated(false)
     try {
       await kiwoomRequestJson('POST', '/auth/active', { params: { account_id: accountId } })
-      const [firstBalanceResponse, buyDatesResponse, realizedResult, depositResponse] = await Promise.all([
-        kiwoomRequestJson('POST', '/stk/acnt/evaluation-balance', {
-          params: {
-            cont_yn: 'N',
-            next_key: '',
-          },
-          body: {
-            qry_tp: nextQryTp,
-            dmst_stex_tp: nextDmstStexTp,
-          },
-        }),
-        requestJson('GET', '/stk/acnt/holding-buy-dates'),
-        fetchRealizedProfitDailySummary(kiwoomRequestJson).catch((realizedFetchError) => ({
-          summary: null,
-          truncated: false,
-          error: realizedFetchError instanceof Error ? realizedFetchError.message : String(realizedFetchError),
-        })),
-        kiwoomRequestJson('POST', '/stk/acnt/deposit-detail', {
-          params: { cont_yn: 'N', next_key: '' },
-          body: { qry_tp: '3' },
-        }).catch((depositFetchError) => ({
-          d2_pymn_alow_amt: null,
-          error: depositFetchError instanceof Error ? depositFetchError.message : String(depositFetchError),
-        })),
-      ])
+      const [firstBalanceResponse, buyDatesResponse, realizedResult, depositResponse, realizedByPeriodResult] =
+        await Promise.all([
+          kiwoomRequestJson('POST', '/stk/acnt/evaluation-balance', {
+            params: {
+              cont_yn: 'N',
+              next_key: '',
+            },
+            body: {
+              qry_tp: nextQryTp,
+              dmst_stex_tp: nextDmstStexTp,
+            },
+          }),
+          requestJson('GET', '/stk/acnt/holding-buy-dates'),
+          fetchRealizedProfitDailySummary(kiwoomRequestJson).catch((realizedFetchError) => ({
+            summary: null,
+            truncated: false,
+            error: realizedFetchError instanceof Error ? realizedFetchError.message : String(realizedFetchError),
+          })),
+          kiwoomRequestJson('POST', '/stk/acnt/deposit-detail', {
+            params: { cont_yn: 'N', next_key: '' },
+            body: { qry_tp: '3' },
+          }).catch((depositFetchError) => ({
+            d2_pymn_alow_amt: null,
+            error: depositFetchError instanceof Error ? depositFetchError.message : String(depositFetchError),
+          })),
+          fetchRealizedProfitByPeriod(kiwoomRequestJson, {
+            accountId,
+            strtDt: PROFIT_TRACKING_START_DATE,
+            endDt: getKstTodayYmd(),
+          }).catch((realizedByPeriodFetchError) => ({
+            rows: [],
+            truncated: false,
+            error:
+              realizedByPeriodFetchError instanceof Error
+                ? realizedByPeriodFetchError.message
+                : String(realizedByPeriodFetchError),
+          })),
+        ])
       setBuyDatesByStkCd(
         buyDatesResponse?.buy_dates && typeof buyDatesResponse.buy_dates === 'object'
           ? buyDatesResponse.buy_dates
@@ -104,10 +116,16 @@ export default function AccountEvaluationBalanceView() {
       if (realizedResult?.error) {
         setRealizedError(realizedResult.error)
       }
+      setRealizedByPeriodRows(
+        Array.isArray(realizedByPeriodResult?.rows) ? realizedByPeriodResult.rows : [],
+      )
+      setRealizedByPeriodTruncated(Boolean(realizedByPeriodResult?.truncated))
+      if (realizedByPeriodResult?.error) {
+        setRealizedByPeriodError(realizedByPeriodResult.error)
+      }
       let response = firstBalanceResponse
       let allRows = Array.isArray(response?.acnt_evlt_remn_indv_tot) ? response.acnt_evlt_remn_indv_tot : []
 
-      setEvalBalanceSort(null)
       const evaluationSummary = {
         totPurAmt: response?.tot_pur_amt ?? null,
         totEvltAmt: response?.tot_evlt_amt ?? null,
@@ -157,6 +175,9 @@ export default function AccountEvaluationBalanceView() {
     } catch (fetchError) {
       setProfitOverview(null)
       setRealizedError('')
+      setRealizedByPeriodRows([])
+      setRealizedByPeriodError('')
+      setRealizedByPeriodTruncated(false)
       setRows([])
       setBuyDatesByStkCd({})
       setError(fetchError instanceof Error ? fetchError.message : String(fetchError))
@@ -179,53 +200,9 @@ export default function AccountEvaluationBalanceView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAccountId])
 
-  const sortedRows = useMemo(() => {
-    if (!evalBalanceSort) {
-      return rows
-    }
-    const { field, dir } = evalBalanceSort
-    const resolveSortValue = (item) => {
-      if (field === 'buy_ord_dt') {
-        return getBuyOrdDtSortKey(item, buyDatesByStkCd)
-      }
-      return parseNumericString(item?.[field])
-    }
-    return [...rows].sort((a, b) => {
-      const va = resolveSortValue(a)
-      const vb = resolveSortValue(b)
-      if (va === null && vb === null) return 0
-      if (va === null) return 1
-      if (vb === null) return -1
-      return dir === 'asc' ? va - vb : vb - va
-    })
-  }, [rows, evalBalanceSort, buyDatesByStkCd])
-
-  function cycleEvalBalanceSort(field) {
-    setEvalBalanceSort((prev) => {
-      if (!prev || prev.field !== field) {
-        return { field, dir: 'desc' }
-      }
-      if (prev.dir === 'desc') {
-        return { field, dir: 'asc' }
-      }
-      return null
-    })
-  }
-
-  const sortMetaBuyDt = evalBalanceSortControlMeta('buy_ord_dt', evalBalanceSort)
-  const sortMetaPnl = evalBalanceSortControlMeta('evltv_prft', evalBalanceSort)
-  const sortMetaPrft = evalBalanceSortControlMeta('prft_rt', evalBalanceSort)
-
   return (
     <section className="dashboard">
       <section className="card">
-        {/* <div className="section-header">
-          <div>
-            <p className="caption">계좌평가 잔고내역</p>
-            <h2>계좌/조회조건별 평가잔고 조회</h2>
-          </div>
-        </div> */}
-
         <div className="evaluation-control-grid">
           <div className="form-field">
             <label htmlFor="eval-account">계좌</label>
@@ -290,193 +267,15 @@ export default function AccountEvaluationBalanceView() {
         realizedError={realizedError}
       />
 
-      <section className="card">
-        <div className="section-header evaluation-list-section-header">
-          <div className="snapshot-chart-title-row">
-            <h2>종목별 평가잔고 목록</h2>
-            <InfoHelpTooltip ariaLabel="종목별 평가잔고 목록 설명">
-              <p className="subtle snapshot-chart-help-text">
-                선택한 계좌·조회구분·거래소 기준 보유 종목별 평가잔고입니다. 연속조회 응답을 합쳐 목록을
-                구성합니다.
-                <br />
-                사용 API: <code>kt00018</code> (계좌평가잔고내역요청)
-              </p>
-            </InfoHelpTooltip>
-          </div>
-          <span className="caption">총 {rows.length}건</span>
-        </div>
-        {isLoading ? <p className="subtle">데이터를 조회하는 중입니다...</p> : null}
-        {!isLoading && rows.length === 0 ? (
-          <p className="subtle">조회된 평가잔고 데이터가 없습니다.</p>
-        ) : null}
-        {!isLoading && rows.length > 0 ? (
-          <>
-            <div className="table-scroll evaluation-table-desktop-wrap">
-              <table className="data-table evaluation-table evaluation-table--balance-list">
-              <colgroup>
-                <col className="col-name" />
-                <col className="col-buy-date" />
-                <col className="col-pl" />
-                <col className="col-rate" />
-                <col className="col-price" />
-                <col className="col-qty" />
-                <col className="col-price" />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>종목명</th>
-                  <th
-                    className="col-buy-date th-sortable"
-                    aria-sort={
-                      evalBalanceSort?.field === 'buy_ord_dt'
-                        ? evalBalanceSort.dir === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : 'none'
-                    }
-                  >
-                    <button
-                      type="button"
-                      className="th-sort-btn"
-                      onClick={() => cycleEvalBalanceSort('buy_ord_dt')}
-                      title="클릭: 최근순 → 과거순 → 원래 순서"
-                    >
-                      매수일
-                      <span className="th-sort-icons" aria-hidden="true">
-                        {evalBalanceSort?.field === 'buy_ord_dt'
-                          ? evalBalanceSort.dir === 'desc'
-                            ? ' ▼'
-                            : ' ▲'
-                          : ''}
-                      </span>
-                    </button>
-                  </th>
-                  <th
-                    className="num th-sortable"
-                    aria-sort={
-                      evalBalanceSort?.field === 'evltv_prft'
-                        ? evalBalanceSort.dir === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : 'none'
-                    }
-                  >
-                    <button
-                      type="button"
-                      className="th-sort-btn"
-                      onClick={() => cycleEvalBalanceSort('evltv_prft')}
-                      title="클릭: 높은순 → 낮은순 → 원래 순서"
-                    >
-                      평가손익
-                      <span className="th-sort-icons" aria-hidden="true">
-                        {evalBalanceSort?.field === 'evltv_prft'
-                          ? evalBalanceSort.dir === 'desc'
-                            ? ' ▼'
-                            : ' ▲'
-                          : ''}
-                      </span>
-                    </button>
-                  </th>
-                  <th
-                    className="num th-sortable"
-                    aria-sort={
-                      evalBalanceSort?.field === 'prft_rt'
-                        ? evalBalanceSort.dir === 'asc'
-                          ? 'ascending'
-                          : 'descending'
-                        : 'none'
-                    }
-                  >
-                    <button
-                      type="button"
-                      className="th-sort-btn"
-                      onClick={() => cycleEvalBalanceSort('prft_rt')}
-                      title="클릭: 높은순 → 낮은순 → 원래 순서"
-                    >
-                      수익률
-                      <span className="th-sort-icons" aria-hidden="true">
-                        {evalBalanceSort?.field === 'prft_rt'
-                          ? evalBalanceSort.dir === 'desc'
-                            ? ' ▼'
-                            : ' ▲'
-                          : ''}
-                      </span>
-                    </button>
-                  </th>
-                  <th className="num">매입가</th>
-                  <th className="num">보유수량</th>
-                  <th className="num">현재가</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedRows.map((item, index) => {
-                  const d = getEvaluationBalanceRowDisplay(item, buyDatesByStkCd)
-                  return (
-                    <tr key={`${item?.stk_cd || 'stk'}-${index}`}>
-                      <td>
-                        <span className="stock-name-with-code" data-code={d.stockCode}>
-                          {d.stockName}
-                        </span>
-                      </td>
-                      <td className="col-buy-date">{d.buyOrdDtText}</td>
-                      <td className={`num ${d.pnlTone ? `delta ${d.pnlTone}` : ''}`}>{d.evltvPrftText}</td>
-                      <td className={`num ${d.profitTone ? `delta ${d.profitTone}` : ''}`}>{d.prftRtText}</td>
-                      <td className="num">{d.purPricText}</td>
-                      <td className="num">{d.rmndQtyText}</td>
-                      <td className="num">{d.curPrcText}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-              </table>
-            </div>
-            <div className="evaluation-balance-mobile-block">
-              <div className="evaluation-mobile-sort-bar" role="toolbar" aria-label="종목 목록 정렬">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => cycleEvalBalanceSort('buy_ord_dt')}
-                  aria-pressed={sortMetaBuyDt.ariaPressed}
-                  aria-label={sortMetaBuyDt.ariaLabel}
-                >
-                  {sortMetaBuyDt.name}
-                  <span aria-hidden="true">{sortMetaBuyDt.icon}</span>
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => cycleEvalBalanceSort('evltv_prft')}
-                  aria-pressed={sortMetaPnl.ariaPressed}
-                  aria-label={sortMetaPnl.ariaLabel}
-                >
-                  {sortMetaPnl.name}
-                  <span aria-hidden="true">{sortMetaPnl.icon}</span>
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => cycleEvalBalanceSort('prft_rt')}
-                  aria-pressed={sortMetaPrft.ariaPressed}
-                  aria-label={sortMetaPrft.ariaLabel}
-                >
-                  {sortMetaPrft.name}
-                  <span aria-hidden="true">{sortMetaPrft.icon}</span>
-                </button>
-              </div>
-              <ul className="evaluation-balance-list-mobile">
-                {sortedRows.map((item, index) => (
-                  <EvaluationBalanceMobileCard
-                    key={`${item?.stk_cd || 'stk'}-m-${index}`}
-                    item={item}
-                    buyDatesByStkCd={buyDatesByStkCd}
-                    showAmountFields={false}
-                  />
-                ))}
-              </ul>
-            </div>
-          </>
-        ) : null}
-      </section>
+      <AccountEvaluationDetailTabs
+        balanceRows={rows}
+        buyDatesByStkCd={buyDatesByStkCd}
+        realizedRows={realizedByPeriodRows}
+        realizedError={realizedByPeriodError}
+        realizedTruncated={realizedByPeriodTruncated}
+        isBalanceLoading={isLoading}
+        isRealizedLoading={isLoading}
+      />
     </section>
   )
 }

@@ -366,6 +366,96 @@ input:focus-visible {
   margin: 0;
 }
 
+.evaluation-detail-tabs {
+  padding-top: 0;
+  overflow: visible;
+}
+
+.evaluation-detail-tab-list {
+  display: flex;
+  gap: 0;
+  margin: 0 -16px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  overflow: visible;
+}
+
+.evaluation-detail-tab-entry {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 2px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.evaluation-detail-tab-entry--active {
+  border-bottom-color: var(--primary);
+}
+
+.evaluation-detail-tab-entry--active .evaluation-detail-tab {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.evaluation-detail-tab-entry .evaluation-detail-tab {
+  border-bottom: none;
+  padding-right: 4px;
+}
+
+.evaluation-detail-tab-entry .snapshot-chart-help-anchor {
+  position: relative;
+  padding-right: 12px;
+  overflow: visible;
+}
+
+.evaluation-detail-tab-entry .snapshot-chart-help-popover {
+  left: auto;
+  right: 0;
+}
+
+.evaluation-detail-tab-entry .snapshot-chart-help-icon-btn {
+  width: 24px;
+  height: 24px;
+}
+
+.evaluation-detail-tab {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.evaluation-detail-tab:hover {
+  color: var(--text-strong);
+}
+
+.evaluation-detail-tab--active {
+  color: var(--text-strong);
+  border-bottom-color: var(--primary);
+  font-weight: 600;
+}
+
+.evaluation-detail-tab-panel {
+  padding-top: 16px;
+}
+
+.evaluation-detail-panel-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .delta {
   margin: 0;
   font-size: 13px;
@@ -1234,6 +1324,10 @@ select option {
   width: 76px;
 }
 
+.evaluation-table .col-dt {
+  width: 131px;
+}
+
 .evaluation-table--balance-list th.col-buy-date,
 .evaluation-table--balance-list td.col-buy-date {
   padding-left: 4px;
@@ -1244,7 +1338,18 @@ select option {
   white-space: nowrap;
 }
 
-.evaluation-table--balance-list th.col-buy-date .th-sort-btn {
+.evaluation-table--realized-period th.col-dt,
+.evaluation-table--realized-period td.col-dt {
+  padding-left: 4px;
+  padding-right: 4px;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.evaluation-table--balance-list th.col-buy-date .th-sort-btn,
+.evaluation-table--realized-period th.col-dt .th-sort-btn {
   font-size: 0.8125rem;
   gap: 0;
 }
