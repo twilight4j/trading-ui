@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   formatProfitTrackingStartDate,
+  getKstTodayYmd,
   PROFIT_TRACKING_START_DATE,
 } from '../lib/accountProfitOverview.js'
 import EvaluationBalanceListCard from './EvaluationBalanceListCard.jsx'
@@ -20,6 +21,7 @@ export default function AccountEvaluationDetailTabs({
   isRealizedLoading = false,
 }) {
   const [activeTab, setActiveTab] = useState(TAB_BALANCE)
+  const realizedPeriodLabel = `${formatProfitTrackingStartDate(PROFIT_TRACKING_START_DATE)} ~ ${formatProfitTrackingStartDate(getKstTodayYmd())}`
 
   return (
     <section className="card evaluation-detail-tabs">
@@ -36,7 +38,7 @@ export default function AccountEvaluationDetailTabs({
             aria-controls="evaluation-detail-panel-balance"
             onClick={() => setActiveTab(TAB_BALANCE)}
           >
-            평가 손익 상세 ({balanceRows.length})
+            평가 손익 상세
           </button>
           <InfoHelpTooltip ariaLabel="평가 손익 상세 설명">
             <p className="subtle snapshot-chart-help-text">
@@ -59,7 +61,7 @@ export default function AccountEvaluationDetailTabs({
             aria-controls="evaluation-detail-panel-realized"
             onClick={() => setActiveTab(TAB_REALIZED)}
           >
-            실현 손익 상세 ({realizedRows.length})
+            실현 손익 상세
           </button>
           <InfoHelpTooltip ariaLabel="일자별·종목별 실현손익 설명">
             <p className="subtle snapshot-chart-help-text">
@@ -79,6 +81,9 @@ export default function AccountEvaluationDetailTabs({
           className="evaluation-detail-tab-panel"
           aria-labelledby="evaluation-detail-tab-balance"
         >
+          <div className="evaluation-detail-panel-meta">
+            <span className="caption">총 {balanceRows.length}건</span>
+          </div>
           <EvaluationBalanceListCard
             embedded
             rows={balanceRows}
@@ -95,6 +100,11 @@ export default function AccountEvaluationDetailTabs({
           className="evaluation-detail-tab-panel"
           aria-labelledby="evaluation-detail-tab-realized"
         >
+          <div className="evaluation-detail-panel-meta">
+            <span className="caption">
+              {realizedPeriodLabel} · 총 {realizedRows.length}건
+            </span>
+          </div>
           <RealizedProfitByPeriodCard
             embedded
             rows={realizedRows}

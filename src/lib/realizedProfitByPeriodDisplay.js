@@ -2,7 +2,7 @@ import { formatBuyOrdDt, normalizeEvaluationStkCd } from './evaluationDisplay.js
 import { formatApiAmount, formatApiNumber, formatApiPercent, getToneByNumericString } from './formatApi.js'
 
 const REALIZED_BY_PERIOD_SORT_FIELD_LABELS = {
-  dt: '일자',
+  dt: '매도일',
   tdy_sel_pl: '당일매도손익',
   pl_rt: '손익율',
 }
@@ -15,13 +15,10 @@ export function getRealizedByPeriodRowDisplay(item) {
     dtText: formatBuyOrdDt(item?.dt),
     cntrQtyText: formatApiNumber(item?.cntr_qty),
     buyUvText: formatApiAmount(item?.buy_uv),
-    cntrPricText: formatApiAmount(item?.cntr_pric),
     pnlTone: getToneByNumericString(item?.tdy_sel_pl),
     profitTone: getToneByNumericString(item?.pl_rt),
     tdySelPlText: formatApiAmount(item?.tdy_sel_pl),
     plRtText: formatApiPercent(item?.pl_rt),
-    trdeCmsnText: formatApiAmount(item?.tdy_trde_cmsn),
-    trdeTaxText: formatApiAmount(item?.tdy_trde_tax),
   }
 }
 

@@ -5,7 +5,7 @@ import AccountOrderHistoryView from './views/AccountOrderHistoryView.jsx'
 import EvaluationSnapshotStatsView from './views/EvaluationSnapshotStatsView.jsx'
 import SettingsView from './views/SettingsView.jsx'
 import MarketDashboardView from './views/MarketDashboardView.jsx'
-import QuarterlyNetIncomeAnalysisView from './views/QuarterlyNetIncomeAnalysisView.jsx'
+import FairPriceAnalysisView from './views/FairPriceAnalysisView.jsx'
 import RegularOrderView from './views/RegularOrderView.jsx'
 import ScheduleManagementView from './views/ScheduleManagementView.jsx'
 
@@ -187,7 +187,7 @@ function App() {
         ) : null}
         {mountedViews.has('quarterlyNetIncomeAnalysis') ? (
           <div hidden={activeView !== 'quarterlyNetIncomeAnalysis'}>
-            <QuarterlyNetIncomeAnalysisView />
+            <FairPriceAnalysisView />
           </div>
         ) : null}
         {mountedViews.has('regularOrder') ? (

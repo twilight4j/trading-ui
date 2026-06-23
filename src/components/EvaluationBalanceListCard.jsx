@@ -95,7 +95,7 @@ export default function EvaluationBalanceListCard({
               </colgroup>
               <thead>
                 <tr>
-                  <th>종목명</th>
+                  <th className="col-name">종목명</th>
                   <th
                     className="col-buy-date th-sortable"
                     aria-sort={
@@ -119,7 +119,7 @@ export default function EvaluationBalanceListCard({
                     </button>
                   </th>
                   <th
-                    className="num th-sortable"
+                    className="col-pl num th-sortable"
                     aria-sort={
                       sort?.field === 'evltv_prft'
                         ? sort.dir === 'asc'
@@ -141,7 +141,7 @@ export default function EvaluationBalanceListCard({
                     </button>
                   </th>
                   <th
-                    className="num th-sortable"
+                    className="col-rate num th-sortable"
                     aria-sort={
                       sort?.field === 'prft_rt'
                         ? sort.dir === 'asc'
@@ -162,9 +162,9 @@ export default function EvaluationBalanceListCard({
                       </span>
                     </button>
                   </th>
-                  <th className="num">매입가</th>
-                  <th className="num">보유수량</th>
-                  <th className="num">현재가</th>
+                  <th className="col-price num">매입가</th>
+                  <th className="col-qty num">보유수량</th>
+                  <th className="col-price num">현재가</th>
                 </tr>
               </thead>
               <tbody>
@@ -172,17 +172,17 @@ export default function EvaluationBalanceListCard({
                   const d = getEvaluationBalanceRowDisplay(item, buyDatesByStkCd)
                   return (
                     <tr key={`${item?.stk_cd || 'stk'}-${index}`}>
-                      <td>
+                      <td className="col-name">
                         <span className="stock-name-with-code" data-code={d.stockCode}>
                           {d.stockName}
                         </span>
                       </td>
                       <td className="col-buy-date">{d.buyOrdDtText}</td>
-                      <td className={`num ${d.pnlTone ? `delta ${d.pnlTone}` : ''}`}>{d.evltvPrftText}</td>
-                      <td className={`num ${d.profitTone ? `delta ${d.profitTone}` : ''}`}>{d.prftRtText}</td>
-                      <td className="num">{d.purPricText}</td>
-                      <td className="num">{d.rmndQtyText}</td>
-                      <td className="num">{d.curPrcText}</td>
+                      <td className={`col-pl num ${d.pnlTone ? `delta ${d.pnlTone}` : ''}`}>{d.evltvPrftText}</td>
+                      <td className={`col-rate num ${d.profitTone ? `delta ${d.profitTone}` : ''}`}>{d.prftRtText}</td>
+                      <td className="col-price num">{d.purPricText}</td>
+                      <td className="col-qty num">{d.rmndQtyText}</td>
+                      <td className="col-price num">{d.curPrcText}</td>
                     </tr>
                   )
                 })}

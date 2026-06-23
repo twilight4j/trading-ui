@@ -20,7 +20,6 @@ function RealizedByPeriodMobileCard({ item }) {
         <span className="stock-name-with-code" data-code={d.stockCode}>
           {d.stockName}
         </span>
-        <span className="caption">{d.dtText}</span>
       </div>
       <div className="evaluation-balance-card-fields">
         <div className="evaluation-balance-card-row">
@@ -36,24 +35,16 @@ function RealizedByPeriodMobileCard({ item }) {
           </span>
         </div>
         <div className="evaluation-balance-card-row">
-          <span className="evaluation-balance-card-label">체결량</span>
-          <span className="evaluation-balance-card-value num">{d.cntrQtyText}</span>
+          <span className="evaluation-balance-card-label">매도일</span>
+          <span className="evaluation-balance-card-value">{d.dtText}</span>
         </div>
         <div className="evaluation-balance-card-row">
           <span className="evaluation-balance-card-label">매입단가</span>
           <span className="evaluation-balance-card-value num">{d.buyUvText}</span>
         </div>
         <div className="evaluation-balance-card-row">
-          <span className="evaluation-balance-card-label">체결가</span>
-          <span className="evaluation-balance-card-value num">{d.cntrPricText}</span>
-        </div>
-        <div className="evaluation-balance-card-row">
-          <span className="evaluation-balance-card-label">수수료</span>
-          <span className="evaluation-balance-card-value num">{d.trdeCmsnText}</span>
-        </div>
-        <div className="evaluation-balance-card-row">
-          <span className="evaluation-balance-card-label">세금</span>
-          <span className="evaluation-balance-card-value num">{d.trdeTaxText}</span>
+          <span className="evaluation-balance-card-label">체결량</span>
+          <span className="evaluation-balance-card-value num">{d.cntrQtyText}</span>
         </div>
       </div>
     </li>
@@ -142,14 +133,18 @@ export default function RealizedProfitByPeriodCard({
           <div className="table-scroll evaluation-table-desktop-wrap">
             <table className="data-table evaluation-table evaluation-table--realized-period">
               <colgroup>
-                <col className="col-dt" />
                 <col className="col-name" />
+                <col className="col-buy-date" />
+                <col className="col-pl" />
+                <col className="col-rate" />
+                <col className="col-price" />
                 <col className="col-qty" />
               </colgroup>
               <thead>
                 <tr>
+                  <th className="col-name">종목명</th>
                   <th
-                    className="col-dt th-sortable"
+                    className="col-buy-date th-sortable"
                     aria-sort={
                       sort?.field === 'dt' ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'
                     }
@@ -160,18 +155,14 @@ export default function RealizedProfitByPeriodCard({
                       onClick={() => cycleSort('dt')}
                       title="클릭: 최근순 → 과거순 → 원래 순서"
                     >
-                      일자
+                      매도일
                       <span className="th-sort-icons" aria-hidden="true">
                         {sort?.field === 'dt' ? (sort.dir === 'desc' ? ' ▼' : ' ▲') : ''}
                       </span>
                     </button>
                   </th>
-                  <th>종목명</th>
-                  <th className="num col-qty">체결량</th>
-                  <th className="num">매입단가</th>
-                  <th className="num">체결가</th>
                   <th
-                    className="num th-sortable"
+                    className="col-pl num th-sortable"
                     aria-sort={
                       sort?.field === 'tdy_sel_pl'
                         ? sort.dir === 'asc'
@@ -193,7 +184,7 @@ export default function RealizedProfitByPeriodCard({
                     </button>
                   </th>
                   <th
-                    className="num th-sortable"
+                    className="col-rate num th-sortable"
                     aria-sort={
                       sort?.field === 'pl_rt' ? (sort.dir === 'asc' ? 'ascending' : 'descending') : 'none'
                     }
@@ -210,8 +201,8 @@ export default function RealizedProfitByPeriodCard({
                       </span>
                     </button>
                   </th>
-                  <th className="num">수수료</th>
-                  <th className="num">세금</th>
+                  <th className="col-price num">매입단가</th>
+                  <th className="col-qty num">체결량</th>
                 </tr>
               </thead>
               <tbody>
@@ -219,19 +210,16 @@ export default function RealizedProfitByPeriodCard({
                   const d = getRealizedByPeriodRowDisplay(item)
                   return (
                     <tr key={`${item?.dt || 'dt'}-${item?.stk_cd || 'stk'}-${index}`}>
-                      <td className="col-dt">{d.dtText}</td>
-                      <td>
+                      <td className="col-name">
                         <span className="stock-name-with-code" data-code={d.stockCode}>
                           {d.stockName}
                         </span>
                       </td>
-                      <td className="num col-qty">{d.cntrQtyText}</td>
-                      <td className="num">{d.buyUvText}</td>
-                      <td className="num">{d.cntrPricText}</td>
-                      <td className={`num ${d.pnlTone ? `delta ${d.pnlTone}` : ''}`}>{d.tdySelPlText}</td>
-                      <td className={`num ${d.profitTone ? `delta ${d.profitTone}` : ''}`}>{d.plRtText}</td>
-                      <td className="num">{d.trdeCmsnText}</td>
-                      <td className="num">{d.trdeTaxText}</td>
+                      <td className="col-buy-date">{d.dtText}</td>
+                      <td className={`col-pl num ${d.pnlTone ? `delta ${d.pnlTone}` : ''}`}>{d.tdySelPlText}</td>
+                      <td className={`col-rate num ${d.profitTone ? `delta ${d.profitTone}` : ''}`}>{d.plRtText}</td>
+                      <td className="col-price num">{d.buyUvText}</td>
+                      <td className="col-qty num">{d.cntrQtyText}</td>
                     </tr>
                   )
                 })}

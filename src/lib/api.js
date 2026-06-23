@@ -21,10 +21,11 @@ export function buildApiUrl(path, params = {}) {
   return `${API_PREFIX}${path}${queryString ? `?${queryString}` : ''}`
 }
 
-export async function requestJson(method, path, { params, body } = {}) {
+export async function requestJson(method, path, { params, body, cache } = {}) {
   const requestUrl = buildApiUrl(path, params)
   const response = await fetch(requestUrl, {
     method,
+    cache,
     headers: body ? { 'Content-Type': 'application/json' } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   })
@@ -58,10 +59,17 @@ export async function requestJson(method, path, { params, body } = {}) {
   return data
 }
 
-export function fetchQuarterlyNetIncomeAnalysis(params = {}) {
-  return requestJson('GET', '/crawling/quarterly-net-income/analysis', { params })
+export function fetchEstimateNetIncomeAnalysis(params = {}) {
+  return requestJson('GET', '/crawling/estimate-net-income/analysis', { params })
 }
 
-export function crawlQuarterlyNetIncome(params = {}) {
-  return requestJson('POST', '/crawling/quarterly-net-income/crawl', { params })
+export function fetchEstimateNetIncomeCrawlPreview(params = {}) {
+  return requestJson('GET', '/crawling/estimate-net-income/crawl/preview', {
+    params,
+    cache: 'no-store',
+  })
+}
+
+export function crawlEstimateNetIncome(params = {}) {
+  return requestJson('POST', '/crawling/estimate-net-income/crawl', { params })
 }
