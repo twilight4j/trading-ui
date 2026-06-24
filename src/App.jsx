@@ -6,6 +6,7 @@ import EvaluationSnapshotStatsView from './views/EvaluationSnapshotStatsView.jsx
 import SettingsView from './views/SettingsView.jsx'
 import MarketDashboardView from './views/MarketDashboardView.jsx'
 import FairPriceAnalysisView from './views/FairPriceAnalysisView.jsx'
+import DataCollectionView from './views/DataCollectionView.jsx'
 import RegularOrderView from './views/RegularOrderView.jsx'
 import ScheduleManagementView from './views/ScheduleManagementView.jsx'
 
@@ -18,6 +19,7 @@ const VALID_VIEWS = new Set([
   'evaluationSnapshotStats',
   'orderHistory',
   'quarterlyNetIncomeAnalysis',
+  'analysisDataCollection',
   'regularOrder',
   'scheduleManagement',
 ])
@@ -67,6 +69,7 @@ function App() {
     evaluationSnapshotStats: '수익률',
     orderHistory: '주문 이력',
     quarterlyNetIncomeAnalysis: '적정주가 분석',
+    analysisDataCollection: '데이터 수집',
     regularOrder: '일괄매도',
     scheduleManagement: '스케줄 관리',
   }[activeView]
@@ -103,6 +106,13 @@ function App() {
               onClick={() => goToView('quarterlyNetIncomeAnalysis')}
             >
               적정주가 분석
+            </button>
+            <button
+              type="button"
+              className={`nav-item ${activeView === 'analysisDataCollection' ? 'active' : ''}`}
+              onClick={() => goToView('analysisDataCollection')}
+            >
+              데이터 수집
             </button>
           </nav>
         </div>
@@ -188,6 +198,11 @@ function App() {
         {mountedViews.has('quarterlyNetIncomeAnalysis') ? (
           <div hidden={activeView !== 'quarterlyNetIncomeAnalysis'}>
             <FairPriceAnalysisView />
+          </div>
+        ) : null}
+        {mountedViews.has('analysisDataCollection') ? (
+          <div hidden={activeView !== 'analysisDataCollection'}>
+            <DataCollectionView />
           </div>
         ) : null}
         {mountedViews.has('regularOrder') ? (

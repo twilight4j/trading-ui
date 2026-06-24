@@ -73,3 +73,15 @@ export function fetchEstimateNetIncomeCrawlPreview(params = {}) {
 export function crawlEstimateNetIncome(params = {}) {
   return requestJson('POST', '/crawling/estimate-net-income/crawl', { params })
 }
+
+export function syncStockBase(params = {}) {
+  return requestJson('POST', '/crawling/stock-base/sync', { params })
+}
+
+export function selectStockBaseTargets(params = {}) {
+  return requestJson('POST', '/crawling/stock-base/select-targets', { params })
+}
+
+export function collectStockBaseDetails(params = {}) {
+  return requestJson('POST', '/crawling/stock-base/collect-details', { params })
+}

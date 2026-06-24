@@ -1290,6 +1290,76 @@ select option {
   gap: 0;
 }
 
+.data-collection-step-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.data-collection-prep-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.data-collection-step-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.data-collection-step-controls {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.data-collection-step-controls--two-cols {
+  grid-template-columns: minmax(180px, 220px) auto;
+}
+
+.data-collection-step-controls--prep {
+  grid-template-columns: minmax(220px, 320px);
+}
+
+.data-collection-step-controls--action-only {
+  grid-template-columns: auto;
+}
+
+.data-collection-step-action-field {
+  justify-self: end;
+}
+
+.data-collection-step-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.data-collection-step-result {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(22, 163, 74, 0.35);
+  background: rgba(22, 163, 74, 0.08);
+}
+
+.data-collection-step-result-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--up);
+}
+
+.data-collection-step-result-summary {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-strong);
+}
+
 .net-income-crawl-controls {
   display: grid;
   grid-template-columns: minmax(120px, 140px) minmax(130px, 160px) minmax(120px, 140px) 100px auto;
@@ -1300,6 +1370,11 @@ select option {
 
 .net-income-crawl-controls--single {
   grid-template-columns: minmax(120px, 140px) minmax(130px, 160px) minmax(120px, 140px) 100px auto;
+}
+
+.net-income-crawl-controls--without-account,
+.net-income-crawl-controls--without-account.net-income-crawl-controls--single {
+  grid-template-columns: minmax(130px, 160px) minmax(120px, 140px) 100px auto;
 }
 
 .net-income-crawl-account-input {
@@ -1549,6 +1624,23 @@ select option {
 }
 
 @media (max-width: 720px) {
+  .data-collection-step-controls,
+  .data-collection-step-controls--two-cols {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .data-collection-step-action-field {
+    justify-self: stretch;
+  }
+
+  .data-collection-step-action-field .btn {
+    width: 100%;
+    min-height: 46px;
+    height: 46px;
+    font-size: 15px;
+  }
+
   .net-income-crawl-controls,
   .net-income-crawl-controls--single {
     grid-template-columns: 1fr;
@@ -1609,12 +1701,16 @@ select option {
 }
 
 .evaluation-table.evaluation-table--fair-price {
-  width: 646px;
-  min-width: 646px;
+  width: 736px;
+  min-width: 736px;
 }
 
 .evaluation-table .col-market {
   width: 72px;
+}
+
+.evaluation-table .col-up-name {
+  width: 96px;
 }
 
 .evaluation-table .col-name {
@@ -1743,14 +1839,16 @@ select option {
 .evaluation-table--balance-list th.col-name,
 .evaluation-table--realized-period th.col-name,
 .evaluation-table--fair-price th.col-name,
-.evaluation-table--fair-price th.col-market {
+.evaluation-table--fair-price th.col-market,
+.evaluation-table--fair-price th.col-up-name {
   text-align: center;
 }
 
 .evaluation-table--balance-list td.col-name,
 .evaluation-table--realized-period td.col-name,
 .evaluation-table--fair-price td.col-name,
-.evaluation-table--fair-price td.col-market {
+.evaluation-table--fair-price td.col-market,
+.evaluation-table--fair-price td.col-up-name {
   overflow: hidden;
   text-overflow: ellipsis;
 }
