@@ -171,9 +171,9 @@ export default function DataCollectionView() {
   const [step3Error, setStep3Error] = useState('')
   const [step3Result, setStep3Result] = useState(null)
 
-  const [crawlScope, setCrawlScope] = useState('single')
+  const [crawlScope, setCrawlScope] = useState('all')
   const [stockCode, setStockCode] = useState('')
-  const [sleepSeconds, setSleepSeconds] = useState('0.5')
+  const [sleepSeconds, setSleepSeconds] = useState('0.3')
   const [crawlLoading, setCrawlLoading] = useState(false)
   const [crawlError, setCrawlError] = useState('')
   const [crawlResult, setCrawlResult] = useState(null)

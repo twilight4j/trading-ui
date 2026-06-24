@@ -1527,14 +1527,21 @@ select option {
   text-align: right;
 }
 
+.fair-price-analysis-card .evaluation-control-grid {
+  grid-template-columns: 100px minmax(180px, 1fr) minmax(160px, 1fr) minmax(170px, 1fr) auto;
+}
+
 .fair-price-action-row {
   display: flex;
   gap: 8px;
+  flex-wrap: nowrap;
 }
 
 .fair-price-action-row .btn {
   min-height: 40px;
   font-size: 13px;
+  min-width: 72px;
+  white-space: nowrap;
 }
 
 .fair-price-mobile-block {
@@ -2703,6 +2710,10 @@ select option {
   .evaluation-control-grid {
     grid-template-columns: 1fr;
     align-items: stretch;
+  }
+
+  .fair-price-analysis-card .evaluation-control-grid {
+    grid-template-columns: 1fr;
   }
 
   .evaluation-control-actions {

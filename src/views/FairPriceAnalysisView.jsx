@@ -91,6 +91,8 @@ function gapRateTone(value) {
 export default function FairPriceAnalysisView() {
   const [stockNameInput, setStockNameInput] = useState('')
   const [stockName, setStockName] = useState('')
+  const [upNameInput, setUpNameInput] = useState('')
+  const [upName, setUpName] = useState('')
   const [marketScopeInput, setMarketScopeInput] = useState('kospi')
   const [marketScope, setMarketScope] = useState('kospi')
   const [marketCapMinInput, setMarketCapMinInput] = useState('')
@@ -134,6 +136,7 @@ export default function FairPriceAnalysisView() {
       const data = await fetchEstimateNetIncomeAnalysis({
         per: ANALYSIS_PER,
         stock_name: stockName || undefined,
+        up_name: upName || undefined,
         market_scope: marketScope,
         market_cap_min: marketCapMin ?? undefined,
         page,
@@ -154,7 +157,7 @@ export default function FairPriceAnalysisView() {
     } finally {
       setLoading(false)
     }
-  }, [stockName, marketScope, marketCapMin, page, pageSize, sortBy, sortOrder])
+  }, [stockName, upName, marketScope, marketCapMin, page, pageSize, sortBy, sortOrder])
 
   useEffect(() => {
     loadData()
@@ -163,6 +166,7 @@ export default function FairPriceAnalysisView() {
   function applyFilters(event) {
     event.preventDefault()
     const nextStockName = stockNameInput.trim()
+    const nextUpName = upNameInput.trim()
     const marketCapMinText = marketCapMinInput.trim()
     let nextMarketCapMin = null
     if (marketCapMinText !== '') {
@@ -175,11 +179,13 @@ export default function FairPriceAnalysisView() {
     }
     const shouldManualReload =
       nextStockName === stockName &&
+      nextUpName === upName &&
       marketScopeInput === marketScope &&
       nextMarketCapMin === marketCapMin &&
       page === 1
     setError('')
     setStockName(nextStockName)
+    setUpName(nextUpName)
     setMarketScope(marketScopeInput)
     setMarketCapMin(nextMarketCapMin)
     setPage(1)
@@ -192,6 +198,8 @@ export default function FairPriceAnalysisView() {
     const shouldManualReload =
       stockNameInput === '' &&
       stockName === '' &&
+      upNameInput === '' &&
+      upName === '' &&
       marketScopeInput === 'kospi' &&
       marketScope === 'kospi' &&
       marketCapMinInput === '' &&
@@ -202,6 +210,8 @@ export default function FairPriceAnalysisView() {
     setError('')
     setStockName('')
     setStockNameInput('')
+    setUpName('')
+    setUpNameInput('')
     setMarketScope('kospi')
     setMarketScopeInput('kospi')
     setMarketCapMin(null)
@@ -255,6 +265,16 @@ export default function FairPriceAnalysisView() {
               type="search"
               value={stockNameInput}
               onChange={(e) => setStockNameInput(e.target.value)}
+              placeholder="부분 검색"
+            />
+          </div>
+          <div className="form-field">
+            <label htmlFor="fp-up-name">업종명</label>
+            <input
+              id="fp-up-name"
+              type="search"
+              value={upNameInput}
+              onChange={(e) => setUpNameInput(e.target.value)}
               placeholder="부분 검색"
             />
           </div>
