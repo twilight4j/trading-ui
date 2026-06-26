@@ -1531,10 +1531,33 @@ select option {
   grid-template-columns: 100px minmax(180px, 1fr) minmax(160px, 1fr) minmax(170px, 1fr) auto;
 }
 
+.fair-price-analysis-card .form-field-actions {
+  grid-column: -2 / -1;
+  justify-self: end;
+}
+
+.fair-price-per-field {
+  grid-column: 1 / span 2;
+}
+
+.fair-price-per-control-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 140px) minmax(100px, 1fr);
+  gap: 8px;
+}
+
+.fair-price-per-input:disabled {
+  background: color-mix(in srgb, var(--bg, #f8fafc) 92%, #000 8%);
+  color: var(--text-muted);
+  border-color: color-mix(in srgb, var(--border, #e2e8f0) 85%, #000 15%);
+  cursor: not-allowed;
+}
+
 .fair-price-action-row {
   display: flex;
   gap: 8px;
   flex-wrap: nowrap;
+  justify-content: flex-end;
 }
 
 .fair-price-action-row .btn {
@@ -1579,9 +1602,16 @@ select option {
 .fair-price-mobile-head {
   margin-bottom: 8px;
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
+}
+
+.fair-price-mobile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 
 .fair-price-mobile-name {
@@ -1748,6 +1778,10 @@ select option {
   width: 92px;
 }
 
+.evaluation-table .col-per {
+  width: 78px;
+}
+
 .evaluation-table th {
   text-transform: none;
   white-space: nowrap;
@@ -1763,6 +1797,7 @@ select option {
 .evaluation-table--realized-period th.col-price,
 .evaluation-table--realized-period th.col-qty,
 .evaluation-table--fair-price th.col-price,
+.evaluation-table--fair-price th.col-per,
 .evaluation-table--fair-price th.col-pl,
 .evaluation-table--fair-price th.col-rate {
   text-align: center;
@@ -1832,6 +1867,8 @@ select option {
 .evaluation-table--realized-period td.col-price,
 .evaluation-table--fair-price th.col-price,
 .evaluation-table--fair-price td.col-price,
+.evaluation-table--fair-price th.col-per,
+.evaluation-table--fair-price td.col-per,
 .evaluation-table--balance-list th.col-qty,
 .evaluation-table--balance-list td.col-qty,
 .evaluation-table--realized-period th.col-qty,
@@ -1858,6 +1895,61 @@ select option {
 .evaluation-table--fair-price td.col-up-name {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.fair-price-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fair-price-name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fair-price-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.fair-price-copy-btn:hover {
+  color: var(--primary);
+}
+
+.fair-price-copy-btn:focus-visible {
+  outline: 2px solid var(--accent, #3b82f6);
+  outline-offset: 1px;
+}
+
+.fair-price-copy-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.fair-price-search-input::-webkit-search-cancel-button {
+  transform: scale(1.25);
+  cursor: pointer;
+}
+
+.fair-price-search-input::-webkit-contacts-auto-fill-button,
+.fair-price-search-input::-webkit-credentials-auto-fill-button {
+  display: none !important;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .evaluation-table--balance-list th.col-buy-date,
@@ -2716,6 +2808,18 @@ select option {
     grid-template-columns: 1fr;
   }
 
+  .fair-price-analysis-card .form-field-actions {
+    grid-column: auto;
+  }
+
+  .fair-price-per-field {
+    grid-column: auto;
+  }
+
+  .fair-price-per-control-row {
+    grid-template-columns: 1fr;
+  }
+
   .evaluation-control-actions {
     width: 100%;
     display: grid;
@@ -2922,6 +3026,10 @@ select option {
   .schedule-manual-run-grid {
     grid-template-columns: 1fr;
   }
+
+  .collection-pipeline-progress-list {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .schedule-manual-run-card {
@@ -2930,6 +3038,88 @@ select option {
   gap: 0;
   height: 100%;
   min-height: 220px;
+}
+
+.schedule-manual-run-card--full-width {
+  grid-column: 1 / -1;
+}
+
+.collection-pipeline-progress {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.collection-pipeline-progress-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.collection-pipeline-progress-step {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--surface);
+}
+
+.collection-pipeline-progress-step-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
+.collection-pipeline-progress-step-status {
+  font-size: 11px;
+  color: var(--text-soft);
+  text-transform: uppercase;
+}
+
+.collection-pipeline-progress-step--pending {
+  opacity: 0.8;
+}
+
+.collection-pipeline-progress-step--running {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: color-mix(in srgb, var(--primary) 7%, #fff);
+}
+
+.collection-pipeline-progress-step--running .collection-pipeline-progress-step-status {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.collection-pipeline-progress-step--completed {
+  border-color: rgba(22, 163, 74, 0.4);
+  background: rgba(22, 163, 74, 0.08);
+}
+
+.collection-pipeline-progress-step--completed .collection-pipeline-progress-step-status {
+  color: var(--up);
+  font-weight: 700;
+}
+
+.collection-pipeline-progress-step--failed {
+  border-color: rgba(220, 38, 38, 0.45);
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.collection-pipeline-progress-step--failed .collection-pipeline-progress-step-status {
+  color: var(--down);
+  font-weight: 700;
+}
+
+.collection-pipeline-progress-meta {
+  margin: 0;
 }
 
 .schedule-manual-run-body {

@@ -73,6 +73,13 @@ function getFailedCrawlItems(result) {
   return result.items.filter((item) => item?.status === 'failed')
 }
 
+function normalizeStockCodeInput(value) {
+  return String(value || '')
+    .toUpperCase()
+    .replace(/[^0-9A-Z]/g, '')
+    .slice(0, 6)
+}
+
 function renderCrawlResultContent(result) {
   if (!result) {
     return null
@@ -170,6 +177,7 @@ export default function DataCollectionView() {
   const [step3Loading, setStep3Loading] = useState(false)
   const [step3Error, setStep3Error] = useState('')
   const [step3Result, setStep3Result] = useState(null)
+  const [step3StockCode, setStep3StockCode] = useState('')
 
   const [crawlScope, setCrawlScope] = useState('all')
   const [stockCode, setStockCode] = useState('')
@@ -208,8 +216,8 @@ export default function DataCollectionView() {
     }
 
     const stockCodeValue = step1StockCode.trim()
-    if (stockCodeValue && !/^\d{6}$/.test(stockCodeValue)) {
-      setStep1Error('샘플 동기화 종목코드는 6자리 숫자로 입력하세요.')
+    if (stockCodeValue && !/^[0-9A-Z]{6}$/.test(stockCodeValue)) {
+      setStep1Error('샘플 동기화 종목코드는 영문/숫자 6자리로 입력하세요.')
       return
     }
 
@@ -254,12 +262,21 @@ export default function DataCollectionView() {
     if (!accountId) {
       return
     }
+    const stockCodeValue = step3StockCode.trim()
+    if (stockCodeValue && !/^[0-9A-Z]{6}$/.test(stockCodeValue)) {
+      setStep3Error('3단계 단일 종목코드는 영문/숫자 6자리로 입력하세요.')
+      return
+    }
 
     setStep3Loading(true)
     setStep3Error('')
     setStep3Result(null)
     try {
-      const data = await collectStockBaseDetails({ account_id: accountId })
+      const params = { account_id: accountId }
+      if (stockCodeValue) {
+        params.stock_code = stockCodeValue
+      }
+      const data = await collectStockBaseDetails(params)
       setStep3Result(data)
     } catch (error) {
       setStep3Error(formatApiErrorDetail(error))
@@ -276,8 +293,8 @@ export default function DataCollectionView() {
 
     const stockCodeValue = stockCode.trim()
     const sleepValue = Number(sleepSeconds)
-    if (crawlScope === 'single' && !/^\d{6}$/.test(stockCodeValue)) {
-      setCrawlError('종목코드를 크롤할 때는 6자리 숫자로 입력하세요.')
+    if (crawlScope === 'single' && !/^[0-9A-Z]{6}$/.test(stockCodeValue)) {
+      setCrawlError('종목코드를 크롤할 때는 영문/숫자 6자리로 입력하세요.')
       return
     }
     if (!Number.isFinite(sleepValue) || sleepValue < 0 || sleepValue > 3) {
@@ -383,11 +400,10 @@ export default function DataCollectionView() {
               <input
                 id="dc-step1-stock-code"
                 type="text"
-                inputMode="numeric"
                 maxLength={6}
                 autoComplete="off"
                 value={step1StockCode}
-                onChange={(e) => setStep1StockCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(e) => setStep1StockCode(normalizeStockCodeInput(e.target.value))}
                 placeholder="미입력 시 전체"
                 disabled={step1Loading}
               />
@@ -493,7 +509,20 @@ export default function DataCollectionView() {
         </div>
 
         <div className="data-collection-step-panel">
-          <div className="data-collection-step-controls data-collection-step-controls--action-only">
+          <div className="data-collection-step-controls data-collection-step-controls--two-cols">
+            <div className="form-field">
+              <label htmlFor="dc-step3-stock-code">단일 종목코드</label>
+              <input
+                id="dc-step3-stock-code"
+                type="text"
+                maxLength={6}
+                autoComplete="off"
+                value={step3StockCode}
+                onChange={(e) => setStep3StockCode(normalizeStockCodeInput(e.target.value))}
+                placeholder="미입력 시 전체"
+                disabled={step3Loading}
+              />
+            </div>
             <div className="form-field data-collection-step-action-field">
               <span className="form-field-label-spacer" aria-hidden="true">
                 &nbsp;
@@ -573,11 +602,10 @@ export default function DataCollectionView() {
                 id="fp-stock-code"
                 className="net-income-crawl-stock-input"
                 type="text"
-                inputMode="numeric"
                 maxLength={6}
                 autoComplete="off"
                 value={stockCode}
-                onChange={(e) => setStockCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(e) => setStockCode(normalizeStockCodeInput(e.target.value))}
                 placeholder="예: 005930"
                 disabled={hasAnyStepRunning || crawlScope !== 'single'}
                 aria-disabled={crawlScope !== 'single'}
