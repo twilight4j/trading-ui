@@ -1618,9 +1618,12 @@ select option {
   margin: 0;
   font-weight: 600;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
 }
 
 .fair-price-mobile-meta {
@@ -1738,8 +1741,9 @@ select option {
 }
 
 .evaluation-table.evaluation-table--fair-price {
-  width: 736px;
-  min-width: 736px;
+  width: 696px;
+  min-width: 696px;
+  border-spacing: 0;
 }
 
 .evaluation-table .col-market {
@@ -1880,6 +1884,12 @@ select option {
   white-space: nowrap;
 }
 
+.evaluation-table--fair-price th,
+.evaluation-table--fair-price td {
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .evaluation-table--balance-list th.col-name,
 .evaluation-table--realized-period th.col-name,
 .evaluation-table--fair-price th.col-name,
@@ -1900,23 +1910,62 @@ select option {
 .fair-price-name-cell {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   min-width: 0;
 }
 
 .fair-price-name-text {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  line-height: 1.2;
+}
+
+.evaluation-table--fair-price .col-name {
+  width: 116px;
+}
+
+.evaluation-table--fair-price .col-market {
+  width: 36px;
+}
+
+.evaluation-table--fair-price .col-up-name {
+  width: 82px;
+}
+
+.evaluation-table--fair-price .col-price {
+  width: 80px;
+}
+
+.evaluation-table--fair-price th.col-price .th-sort-btn {
+  font-size: 0.65625rem;
+  letter-spacing: -0.01em;
+}
+
+.evaluation-table--fair-price th.col-up-name {
+  font-size: 0.8125rem;
+  letter-spacing: normal;
+}
+
+.evaluation-table--fair-price td.col-price {
   white-space: nowrap;
+}
+
+.evaluation-table--fair-price td.col-name {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .fair-price-copy-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   border: none;
   border-radius: 4px;
@@ -1936,8 +1985,12 @@ select option {
 }
 
 .fair-price-copy-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
+}
+
+.evaluation-table--fair-price .th-sort-btn {
+  gap: 0;
 }
 
 .fair-price-search-input::-webkit-search-cancel-button {

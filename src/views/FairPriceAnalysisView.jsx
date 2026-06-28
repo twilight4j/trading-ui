@@ -98,6 +98,17 @@ function gapRateTone(value) {
   return ''
 }
 
+function formatMarketLabel(value) {
+  const text = String(value ?? '').trim()
+  if (text === '코스피') {
+    return '코'
+  }
+  if (text === '코스닥') {
+    return '닥'
+  }
+  return text || '—'
+}
+
 export default function FairPriceAnalysisView() {
   const [stockNameInput, setStockNameInput] = useState('')
   const [stockName, setStockName] = useState('')
@@ -105,12 +116,14 @@ export default function FairPriceAnalysisView() {
   const [upName, setUpName] = useState('')
   const [marketScopeInput, setMarketScopeInput] = useState('kospi')
   const [marketScope, setMarketScope] = useState('kospi')
+  const [divYieldPresenceInput, setDivYieldPresenceInput] = useState('all')
+  const [divYieldPresence, setDivYieldPresence] = useState('all')
   const [marketCapMinInput, setMarketCapMinInput] = useState('')
   const [marketCapMin, setMarketCapMin] = useState(null)
-  const [perModeInput, setPerModeInput] = useState(PER_MODE_STOCK)
-  const [perMode, setPerMode] = useState(PER_MODE_STOCK)
+  const [perModeInput, setPerModeInput] = useState(PER_MODE_MANUAL)
+  const [perMode, setPerMode] = useState(PER_MODE_MANUAL)
   const [perInput, setPerInput] = useState('10')
-  const [per, setPer] = useState(null)
+  const [per, setPer] = useState(10)
   const [estimatePeriod, setEstimatePeriod] = useState('')
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
@@ -138,6 +151,7 @@ export default function FairPriceAnalysisView() {
       { key: 'up_name', label: '업종', colClass: 'col-up-name', sortable: false },
       { key: 'estimate_202812', label: formatEstimatePeriodLabel(estimatePeriod), colClass: 'col-price', sortable: true },
       { key: 'per', label: 'PER', colClass: 'col-per', sortable: false },
+      { key: 'div_yield', label: '배당수익률', colClass: 'col-per', sortable: false },
       { key: 'market_cap', label: '시가총액', colClass: 'col-pl', sortable: true },
       { key: 'fair_market_cap', label: '적정시가총액', colClass: 'col-pl', sortable: true },
       { key: 'upside_rate', label: '상승여력(%)', colClass: 'col-rate', sortable: true },
@@ -154,6 +168,7 @@ export default function FairPriceAnalysisView() {
         stock_name: stockName || undefined,
         up_name: upName || undefined,
         market_scope: marketScope,
+        div_yield_presence: divYieldPresence,
         market_cap_min: marketCapMin ?? undefined,
         page,
         page_size: pageSize,
@@ -173,7 +188,7 @@ export default function FairPriceAnalysisView() {
     } finally {
       setLoading(false)
     }
-  }, [stockName, upName, marketScope, marketCapMin, page, pageSize, per, sortBy, sortOrder])
+  }, [stockName, upName, marketScope, divYieldPresence, marketCapMin, page, pageSize, per, sortBy, sortOrder])
 
   useEffect(() => {
     loadData()
@@ -212,6 +227,7 @@ export default function FairPriceAnalysisView() {
       nextStockName === stockName &&
       nextUpName === upName &&
       marketScopeInput === marketScope &&
+      divYieldPresenceInput === divYieldPresence &&
       nextMarketCapMin === marketCapMin &&
       nextPerMode === perMode &&
       nextPer === per &&
@@ -220,6 +236,7 @@ export default function FairPriceAnalysisView() {
     setStockName(nextStockName)
     setUpName(nextUpName)
     setMarketScope(marketScopeInput)
+    setDivYieldPresence(divYieldPresenceInput)
     setMarketCapMin(nextMarketCapMin)
     setPerMode(nextPerMode)
     setPer(nextPer)
@@ -237,12 +254,14 @@ export default function FairPriceAnalysisView() {
       upName === '' &&
       marketScopeInput === 'kospi' &&
       marketScope === 'kospi' &&
+      divYieldPresenceInput === 'all' &&
+      divYieldPresence === 'all' &&
       marketCapMinInput === '' &&
       marketCapMin == null &&
-      perModeInput === PER_MODE_STOCK &&
-      perMode === PER_MODE_STOCK &&
+      perModeInput === PER_MODE_MANUAL &&
+      perMode === PER_MODE_MANUAL &&
       perInput === '10' &&
-      per == null &&
+      per === 10 &&
       page === 1 &&
       sortBy === 'upside_rate' &&
       sortOrder === 'desc'
@@ -253,12 +272,14 @@ export default function FairPriceAnalysisView() {
     setUpNameInput('')
     setMarketScope('kospi')
     setMarketScopeInput('kospi')
+    setDivYieldPresence('all')
+    setDivYieldPresenceInput('all')
     setMarketCapMin(null)
     setMarketCapMinInput('')
-    setPerModeInput(PER_MODE_STOCK)
-    setPerMode(PER_MODE_STOCK)
+    setPerModeInput(PER_MODE_MANUAL)
+    setPerMode(PER_MODE_MANUAL)
     setPerInput('10')
-    setPer(null)
+    setPer(10)
     setPage(1)
     setSortBy('upside_rate')
     setSortOrder('desc')
@@ -372,6 +393,18 @@ export default function FairPriceAnalysisView() {
               placeholder="미입력 시 전체"
             />
           </div>
+          <div className="form-field">
+            <label htmlFor="fp-div-yield-presence">배당수익률</label>
+            <select
+              id="fp-div-yield-presence"
+              value={divYieldPresenceInput}
+              onChange={(e) => setDivYieldPresenceInput(e.target.value)}
+            >
+              <option value="all">전체</option>
+              <option value="has">있음</option>
+              <option value="none">없음</option>
+            </select>
+          </div>
           <div className="form-field fair-price-per-field">
             <label htmlFor="fp-per">PER</label>
             <div className="fair-price-per-control-row">
@@ -434,6 +467,7 @@ export default function FairPriceAnalysisView() {
                     <col className="col-market" />
                     <col className="col-up-name" />
                     <col className="col-price" />
+                    <col className="col-per" />
                     <col className="col-per" />
                     <col className="col-pl" />
                     <col className="col-pl" />
@@ -519,10 +553,11 @@ export default function FairPriceAnalysisView() {
                               </button>
                             </div>
                           </td>
-                          <td className="col-market">{row.market_name || '—'}</td>
+                          <td className="col-market">{formatMarketLabel(row.market_name)}</td>
                           <td className="col-up-name">{row.up_name || '—'}</td>
                           <td className="col-price num">{formatNumber(row.estimate_202812)}</td>
                           <td className="col-per num">{formatNumber(row.per)}</td>
+                          <td className="col-per num">{row.div_yield || '—'}</td>
                           <td className="col-pl num">{formatNumber(row.market_cap)}</td>
                           <td className="col-pl num">{formatNumber(row.fair_market_cap)}</td>
                           <td className={`col-rate num ${upsideTone ? `delta ${upsideTone}` : ''}`}>
@@ -603,7 +638,7 @@ export default function FairPriceAnalysisView() {
                           </div>
                           <p className="fair-price-mobile-meta">
                             {row.stock_code}
-                            {row.market_name ? ` · ${row.market_name}` : ''}
+                            {row.market_name ? ` · ${formatMarketLabel(row.market_name)}` : ''}
                             {row.up_name ? ` · ${row.up_name}` : ''}
                           </p>
                         </div>
@@ -615,6 +650,10 @@ export default function FairPriceAnalysisView() {
                           <div>
                             <dt>PER</dt>
                             <dd>{formatNumber(row.per)}</dd>
+                          </div>
+                          <div>
+                            <dt>배당수익률</dt>
+                            <dd>{row.div_yield || '—'}</dd>
                           </div>
                           <div>
                             <dt>시가총액</dt>
