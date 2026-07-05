@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ApiError, fetchEstimateNetIncomeAnalysis } from '../lib/api.js'
 
-const PER_MODE_STOCK = 'stock'
+const PER_MODE_2026 = 'per_2026'
+const PER_MODE_2028 = 'per_2028'
 const PER_MODE_MANUAL = 'manual'
 
 function formatEstimatePeriodLabel(period) {
@@ -120,8 +121,8 @@ export default function FairPriceAnalysisView() {
   const [divYieldPresence, setDivYieldPresence] = useState('all')
   const [marketCapMinInput, setMarketCapMinInput] = useState('')
   const [marketCapMin, setMarketCapMin] = useState(null)
-  const [perModeInput, setPerModeInput] = useState(PER_MODE_MANUAL)
-  const [perMode, setPerMode] = useState(PER_MODE_MANUAL)
+  const [perModeInput, setPerModeInput] = useState(PER_MODE_2026)
+  const [perMode, setPerMode] = useState(PER_MODE_2026)
   const [perInput, setPerInput] = useState('10')
   const [per, setPer] = useState(10)
   const [estimatePeriod, setEstimatePeriod] = useState('')
@@ -149,9 +150,10 @@ export default function FairPriceAnalysisView() {
       { key: 'stock_name', label: '종목명', colClass: 'col-name', sortable: true },
       { key: 'market_name', label: '마켓', colClass: 'col-market', sortable: false },
       { key: 'up_name', label: '업종', colClass: 'col-up-name', sortable: false },
-      { key: 'estimate_202812', label: formatEstimatePeriodLabel(estimatePeriod), colClass: 'col-price', sortable: true },
-      { key: 'per', label: 'PER', colClass: 'col-per', sortable: false },
       { key: 'div_yield', label: '배당수익률', colClass: 'col-per', sortable: false },
+      { key: 'per_2026', label: '26PER', colClass: 'col-per', sortable: false },
+      { key: 'per_2028', label: '28PER', colClass: 'col-per', sortable: false },
+      { key: 'estimate_202812', label: formatEstimatePeriodLabel(estimatePeriod), colClass: 'col-price', sortable: true },
       { key: 'market_cap', label: '시가총액', colClass: 'col-pl', sortable: true },
       { key: 'fair_market_cap', label: '적정시가총액', colClass: 'col-pl', sortable: true },
       { key: 'upside_rate', label: '상승여력(%)', colClass: 'col-rate', sortable: true },
@@ -164,7 +166,8 @@ export default function FairPriceAnalysisView() {
     setError('')
     try {
       const data = await fetchEstimateNetIncomeAnalysis({
-        per: per ?? undefined,
+        per_mode: perMode,
+        per: perMode === PER_MODE_MANUAL ? per ?? undefined : undefined,
         stock_name: stockName || undefined,
         up_name: upName || undefined,
         market_scope: marketScope,
@@ -188,7 +191,7 @@ export default function FairPriceAnalysisView() {
     } finally {
       setLoading(false)
     }
-  }, [stockName, upName, marketScope, divYieldPresence, marketCapMin, page, pageSize, per, sortBy, sortOrder])
+  }, [stockName, upName, marketScope, divYieldPresence, marketCapMin, page, pageSize, perMode, per, sortBy, sortOrder])
 
   useEffect(() => {
     loadData()
@@ -209,7 +212,8 @@ export default function FairPriceAnalysisView() {
       nextMarketCapMin = Math.floor(parsed)
     }
     const perText = perInput.trim()
-    const nextPerMode = perModeInput === PER_MODE_STOCK ? PER_MODE_STOCK : PER_MODE_MANUAL
+    const nextPerMode =
+      perModeInput === PER_MODE_2026 || perModeInput === PER_MODE_2028 ? perModeInput : PER_MODE_MANUAL
     let nextPer = null
     if (nextPerMode === PER_MODE_MANUAL) {
       if (perText === '') {
@@ -258,8 +262,8 @@ export default function FairPriceAnalysisView() {
       divYieldPresence === 'all' &&
       marketCapMinInput === '' &&
       marketCapMin == null &&
-      perModeInput === PER_MODE_MANUAL &&
-      perMode === PER_MODE_MANUAL &&
+      perModeInput === PER_MODE_2026 &&
+      perMode === PER_MODE_2026 &&
       perInput === '10' &&
       per === 10 &&
       page === 1 &&
@@ -276,8 +280,8 @@ export default function FairPriceAnalysisView() {
     setDivYieldPresenceInput('all')
     setMarketCapMin(null)
     setMarketCapMinInput('')
-    setPerModeInput(PER_MODE_MANUAL)
-    setPerMode(PER_MODE_MANUAL)
+    setPerModeInput(PER_MODE_2026)
+    setPerMode(PER_MODE_2026)
     setPerInput('10')
     setPer(10)
     setPage(1)
@@ -409,7 +413,8 @@ export default function FairPriceAnalysisView() {
             <label htmlFor="fp-per">PER</label>
             <div className="fair-price-per-control-row">
               <select id="fp-per-mode" value={perModeInput} onChange={(e) => setPerModeInput(e.target.value)}>
-                <option value={PER_MODE_STOCK}>종목별PER</option>
+                <option value={PER_MODE_2026}>26PER</option>
+                <option value={PER_MODE_2028}>28PER</option>
                 <option value={PER_MODE_MANUAL}>직접입력</option>
               </select>
               <input
@@ -421,8 +426,8 @@ export default function FairPriceAnalysisView() {
                 value={perInput}
                 onChange={(e) => setPerInput(e.target.value)}
                 placeholder="예: 10"
-                disabled={perModeInput === PER_MODE_STOCK}
-                aria-disabled={perModeInput === PER_MODE_STOCK}
+                disabled={perModeInput !== PER_MODE_MANUAL}
+                aria-disabled={perModeInput !== PER_MODE_MANUAL}
               />
             </div>
           </div>
@@ -446,7 +451,9 @@ export default function FairPriceAnalysisView() {
             총 {total.toLocaleString('ko-KR')}건 · {page}/{totalPages}페이지 · 단위: 억원 ·{' '}
             {perMode === PER_MODE_MANUAL
               ? `적용 PER(입력) ${formatNumber(per)}`
-              : '적용 PER: 종목별 DB 값(없으면 N/A)'}
+              : perMode === PER_MODE_2026
+                ? '적용 PER: 26PER(202612)'
+                : '적용 PER: 28PER(202812)'}
           </p>
 
           {error ? <p className="error-text">{error}</p> : null}
@@ -466,9 +473,10 @@ export default function FairPriceAnalysisView() {
                     <col className="col-name" />
                     <col className="col-market" />
                     <col className="col-up-name" />
+                    <col className="col-per" />
+                    <col className="col-per" />
+                    <col className="col-per" />
                     <col className="col-price" />
-                    <col className="col-per" />
-                    <col className="col-per" />
                     <col className="col-pl" />
                     <col className="col-pl" />
                     <col className="col-rate" />
@@ -555,9 +563,10 @@ export default function FairPriceAnalysisView() {
                           </td>
                           <td className="col-market">{formatMarketLabel(row.market_name)}</td>
                           <td className="col-up-name">{row.up_name || '—'}</td>
-                          <td className="col-price num">{formatNumber(row.estimate_202812)}</td>
-                          <td className="col-per num">{formatNumber(row.per)}</td>
                           <td className="col-per num">{row.div_yield || '—'}</td>
+                          <td className="col-per num">{formatNumber(row.per_2026)}</td>
+                          <td className="col-per num">{formatNumber(row.per_2028)}</td>
+                          <td className="col-price num">{formatNumber(row.estimate_202812)}</td>
                           <td className="col-pl num">{formatNumber(row.market_cap)}</td>
                           <td className="col-pl num">{formatNumber(row.fair_market_cap)}</td>
                           <td className={`col-rate num ${upsideTone ? `delta ${upsideTone}` : ''}`}>
@@ -644,16 +653,20 @@ export default function FairPriceAnalysisView() {
                         </div>
                         <dl className="fair-price-mobile-grid">
                           <div>
+                            <dt>배당수익률</dt>
+                            <dd>{row.div_yield || '—'}</dd>
+                          </div>
+                          <div>
                             <dt>{formatEstimatePeriodLabel(estimatePeriod)}</dt>
                             <dd>{formatNumber(row.estimate_202812)}</dd>
                           </div>
                           <div>
-                            <dt>PER</dt>
-                            <dd>{formatNumber(row.per)}</dd>
+                            <dt>26PER</dt>
+                            <dd>{formatNumber(row.per_2026)}</dd>
                           </div>
                           <div>
-                            <dt>배당수익률</dt>
-                            <dd>{row.div_yield || '—'}</dd>
+                            <dt>28PER</dt>
+                            <dd>{formatNumber(row.per_2028)}</dd>
                           </div>
                           <div>
                             <dt>시가총액</dt>
