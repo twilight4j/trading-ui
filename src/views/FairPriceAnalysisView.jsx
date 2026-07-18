@@ -340,7 +340,7 @@ export default function FairPriceAnalysisView() {
     <section className="dashboard">
       <section className="card fair-price-analysis-card">
         <div className="benchmark-head">
-          <p className="caption">분석 &gt; 적정주가 분석</p>
+          <p className="caption">분석 &gt; 적정주가 분석_</p>
           <div className="snapshot-chart-title-row">
             <h2 className="snapshot-chart-title">종목별 적정주가 분석</h2>
           </div>
