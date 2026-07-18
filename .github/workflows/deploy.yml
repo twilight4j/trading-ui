@@ -1,0 +1,24 @@
+name: Deploy to Mac mini
+
+env:
+  PROJECT_PATH: /Users/jyby/my-project/trading-workspace/trading-ui
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Make deploy script executable
+        run: chmod +x scripts/deploy.sh
+
+      - name: Deploy
+        working-directory: ${{ env.PROJECT_PATH }}
+        run: ./scripts/deploy.sh
