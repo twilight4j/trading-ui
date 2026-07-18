@@ -1849,6 +1849,8 @@ select option {
 .evaluation-table--fair-price td.col-name,
 .evaluation-table--fair-price th.col-market,
 .evaluation-table--fair-price td.col-market,
+.evaluation-table--fair-price th.col-stock-code,
+.evaluation-table--fair-price td.col-stock-code,
 .evaluation-table--balance-list th.col-buy-date,
 .evaluation-table--balance-list td.col-buy-date,
 .evaluation-table--realized-period th.col-buy-date,
@@ -1894,6 +1896,7 @@ select option {
 .evaluation-table--realized-period th.col-name,
 .evaluation-table--fair-price th.col-name,
 .evaluation-table--fair-price th.col-market,
+.evaluation-table--fair-price th.col-stock-code,
 .evaluation-table--fair-price th.col-up-name {
   text-align: center;
 }
@@ -1902,6 +1905,7 @@ select option {
 .evaluation-table--realized-period td.col-name,
 .evaluation-table--fair-price td.col-name,
 .evaluation-table--fair-price td.col-market,
+.evaluation-table--fair-price td.col-stock-code,
 .evaluation-table--fair-price td.col-up-name {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1930,6 +1934,10 @@ select option {
 
 .evaluation-table--fair-price .col-market {
   width: 36px;
+}
+
+.evaluation-table--fair-price .col-stock-code {
+  width: 64px;
 }
 
 .evaluation-table--fair-price .col-up-name {

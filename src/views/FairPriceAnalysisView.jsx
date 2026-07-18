@@ -121,8 +121,8 @@ export default function FairPriceAnalysisView() {
   const [divYieldPresence, setDivYieldPresence] = useState('all')
   const [marketCapMinInput, setMarketCapMinInput] = useState('')
   const [marketCapMin, setMarketCapMin] = useState(null)
-  const [perModeInput, setPerModeInput] = useState(PER_MODE_2026)
-  const [perMode, setPerMode] = useState(PER_MODE_2026)
+  const [perModeInput, setPerModeInput] = useState(PER_MODE_MANUAL)
+  const [perMode, setPerMode] = useState(PER_MODE_MANUAL)
   const [perInput, setPerInput] = useState('10')
   const [per, setPer] = useState(10)
   const [estimatePeriod, setEstimatePeriod] = useState('')
@@ -149,6 +149,7 @@ export default function FairPriceAnalysisView() {
     () => [
       { key: 'stock_name', label: '종목명', colClass: 'col-name', sortable: true },
       { key: 'market_name', label: '마켓', colClass: 'col-market', sortable: false },
+      { key: 'stock_code', label: '코드', colClass: 'col-stock-code', sortable: false },
       { key: 'up_name', label: '업종', colClass: 'col-up-name', sortable: false },
       { key: 'div_yield', label: '배당수익률', colClass: 'col-per', sortable: false },
       { key: 'per_2026', label: '26PER', colClass: 'col-per', sortable: false },
@@ -262,8 +263,8 @@ export default function FairPriceAnalysisView() {
       divYieldPresence === 'all' &&
       marketCapMinInput === '' &&
       marketCapMin == null &&
-      perModeInput === PER_MODE_2026 &&
-      perMode === PER_MODE_2026 &&
+      perModeInput === PER_MODE_MANUAL &&
+      perMode === PER_MODE_MANUAL &&
       perInput === '10' &&
       per === 10 &&
       page === 1 &&
@@ -280,8 +281,8 @@ export default function FairPriceAnalysisView() {
     setDivYieldPresenceInput('all')
     setMarketCapMin(null)
     setMarketCapMinInput('')
-    setPerModeInput(PER_MODE_2026)
-    setPerMode(PER_MODE_2026)
+    setPerModeInput(PER_MODE_MANUAL)
+    setPerMode(PER_MODE_MANUAL)
     setPerInput('10')
     setPer(10)
     setPage(1)
@@ -472,6 +473,7 @@ export default function FairPriceAnalysisView() {
                   <colgroup>
                     <col className="col-name" />
                     <col className="col-market" />
+                    <col className="col-stock-code" />
                     <col className="col-up-name" />
                     <col className="col-per" />
                     <col className="col-per" />
@@ -562,6 +564,7 @@ export default function FairPriceAnalysisView() {
                             </div>
                           </td>
                           <td className="col-market">{formatMarketLabel(row.market_name)}</td>
+                          <td className="col-stock-code">{row.stock_code || '—'}</td>
                           <td className="col-up-name">{row.up_name || '—'}</td>
                           <td className="col-per num">{row.div_yield || '—'}</td>
                           <td className="col-per num">{formatNumber(row.per_2026)}</td>
@@ -652,6 +655,10 @@ export default function FairPriceAnalysisView() {
                           </p>
                         </div>
                         <dl className="fair-price-mobile-grid">
+                          <div>
+                            <dt>종목코드</dt>
+                            <dd>{row.stock_code || '—'}</dd>
+                          </div>
                           <div>
                             <dt>배당수익률</dt>
                             <dd>{row.div_yield || '—'}</dd>
